@@ -1,10 +1,8 @@
 #include <array>
 #include <vector>
 #include <iostream>
-#include <random>
 #include <stdint.h>
 #include <chrono>
-#include <omp.h>
 #include <fstream>
 #include <sstream>
 
