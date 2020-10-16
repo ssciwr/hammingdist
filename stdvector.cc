@@ -35,6 +35,8 @@ static int distance(const std::vector<Gene>& a, const std::vector<Gene>& b){
 int main(int argc, char *argv[]	) {
   std::size_t length{30000};
   std::size_t nsamples = std::stoi(std::string(argv[1]));
+  // std::string datapath = std::string(argv[2]);
+
   auto m = makeMatrix(length, nsamples);
 
   // Resize an output vector

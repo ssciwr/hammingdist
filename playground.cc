@@ -1,32 +1,61 @@
+#include <array>
 #include <vector>
 #include <iostream>
 #include <random>
 #include <stdint.h>
 #include <chrono>
 #include <omp.h>
+#include <fstream>
+#include <sstream>
 
 using Gene = std::uint_fast8_t;
 
-static std::vector<std::vector<Gene>> makeMatrix(std::size_t l, std::size_t n){
+static std::vector<std::vector<Gene>> makeMatrix(const std::string& filename, std::size_t l, std::size_t n)
+{
+  // The return variable
   std::vector<std::vector<Gene>> m;
-  std::mt19937 gen(12345);
-  std::uniform_int_distribution<> distrib(0, 5);
   m.reserve(n);
-  for(std::size_t row=0; row<n; ++row){
+
+  // Initializing the stream
+  std::ifstream stream(filename);
+  std::size_t count = 0;
+  std::string line;
+  unsigned char buffer;
+
+  // Lookup table for the encodings
+  std::array<Gene, 256> lookup;
+  std::fill(lookup.begin(), lookup.end(), 0);
+  lookup[std::size_t('A')] = 1 << 1;
+  lookup[std::size_t('C')] = 1 << 2;
+  lookup[std::size_t('G')] = 1 << 3;
+  lookup[std::size_t('T')] = 1 << 4;
+
+  // The while-condition consumes the header line
+  while((count < n) && (std::getline(stream, line)))
+  {
     m.emplace_back();
     auto &v = m.back();
-    v.reserve(l);
-    for(std::size_t i=0; i<l; ++i){
-      v.push_back(distrib(gen));
+    v.resize(l);
+    std::size_t pos = 0;
+
+    while((pos < l) && (std::getline(stream, line)))
+    {
+      std::istringstream iss(line);
+      while(iss >> buffer)
+        v[pos++] = lookup[std::size_t(buffer)];
     }
+   
+    ++count;
   }
+
   return m;
 }
 
 static int distance(const std::vector<Gene>& a, const std::vector<Gene>& b){
   int r{0};
-  for (std::size_t i=0; i<a.size(); ++i){
-    if(a[i]!=b[i]){
+  for (std::size_t i=0; i<a.size(); ++i)
+  {
+    if(((a[i] & b[i]) == 0) && (a[i] | b[i])){
       ++r;
     }
   }
@@ -34,35 +63,57 @@ static int distance(const std::vector<Gene>& a, const std::vector<Gene>& b){
 }
 
 int main(int argc, char *argv[]	) {
-  std::size_t length{30000};
-  std::size_t nsamples = std::stoi(std::string(argv[1]));
-  auto m = makeMatrix(length, nsamples);
+  // Parse arguments. Sequence length currently fixed at compile time
+  std::size_t length{29768};
+  std::string filename = std::string(argv[1]);
+  std::size_t nsamples = std::stoi(std::string(argv[2]));
 
-  // Use a plain C array for output
+  // Read the input
+  auto start = std::chrono::steady_clock::now();
+  auto m = makeMatrix(filename, length, nsamples);
+  auto stop = std::chrono::steady_clock::now();
+  std::chrono::duration<double> elapsed_seconds = stop - start;
+  std::cout << "Parsing input fasta file took " << elapsed_seconds.count() << "s" << std::endl;
+
+  // Properly resize the output array
+  start = std::chrono::steady_clock::now();
   std::vector<std::vector<int>> result(nsamples);
   for(std::size_t i=0; i < nsamples; ++i)
     result[i].resize(i);
+  stop = std::chrono::steady_clock::now();
+  elapsed_seconds = stop - start;
+  std::cout << "Allocating the output data structure took " << elapsed_seconds.count() << "s" << std::endl;
 
   // Call the distance function
-  auto start = std::chrono::steady_clock::now();
-  #pragma omp parallel
+  start = std::chrono::steady_clock::now();
   for(std::size_t i=0; i<nsamples; ++i)
-  {
-    #pragma omp nowait
     for(std::size_t j=0; j<i; ++j)
       result[i][j] = distance(m[i], m[j]);
+  stop = std::chrono::steady_clock::now();
+  elapsed_seconds = stop - start;
+  std::cout << "Calculating distances took " << elapsed_seconds.count() << "s" << std::endl;
+
+  // Write output to a file
+  start = std::chrono::steady_clock::now();
+  std::string outputfile{"distances.csv"};
+  std::ofstream stream(outputfile);
+  for(std::size_t i=0; i<nsamples; ++i)
+  {
+    for(std::size_t j=0; j<nsamples; ++j)
+    {
+      if(i == j)
+        stream << 0 << ", ";
+      if(i < j)
+        stream << result[j][i] << ", ";
+      if(i > j)
+        stream << result[i][j] << ", ";
+    }
+    stream << std::endl;
   }
-  auto stop = std::chrono::steady_clock::now();
-
-  // Write the results to the terminal
-  for(std::size_t i=0; i < nsamples; ++i)
-    for(std::size_t j=0; j<i; ++j)
-      std::cout << result[i][j] << "\n";
-
-  // Report measurements
-  std::cout << "OpenMP parallel with numthreads = " << omp_get_num_threads() << std::endl;
-  std::chrono::duration<double> elapsed_seconds = stop-start;
-  std::cout << "Computation took: " << elapsed_seconds.count() << "s\n";
+  stop = std::chrono::steady_clock::now();
+  elapsed_seconds = stop - start;
+  std::cout << "Writing results to " << outputfile << " took: " << elapsed_seconds.count() << "s" << std::endl;
 
   return 0;
 }
+ 
