@@ -22,6 +22,9 @@ make distance
 ```
 
 This should (successfully) build the executable `distance` in the `build` subdirectory.
+If `cmake` picks up the wrong compiler, it can be explicitly enforced by adding
+`-DCMAKE_CXX_COMPILER=<path-to-compiler>` to the cmake call (in that case it is best
+to remove the build directory and start from scratch).
 
 # Running
 
