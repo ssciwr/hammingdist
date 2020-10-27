@@ -14,7 +14,5 @@ add_subdirectory(pybind11)
 pybind11_add_module(hammingdist pythonlib.cc)
 target_link_libraries(hammingdist PUBLIC libhamming)
 
-add_subdirectory(alternatives)
-
 include(FeatureSummary)
 feature_summary(WHAT ALL)
