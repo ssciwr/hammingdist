@@ -52,11 +52,8 @@ static std::vector<std::vector<Gene>> makeMatrix(const std::string& filename, st
 static int distance(const std::vector<Gene>& a, const std::vector<Gene>& b){
   int r{0};
   for (std::size_t i=0; i<a.size(); ++i)
-  {
-    if(((a[i] & b[i]) == 0) && (a[i] | b[i])){
+    if(a[i] ^ b[i])
       ++r;
-    }
-  }
   return r;
 }
 
