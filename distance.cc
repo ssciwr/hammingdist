@@ -59,15 +59,34 @@ static int distance(const std::vector<Gene>& a, const std::vector<Gene>& b){
 
 int main(int argc, char *argv[]	) {
   // Parse arguments. Sequence length currently fixed at compile time
-  std::size_t length{29768};
   std::string filename = std::string(argv[1]);
   std::size_t nsamples = std::stoi(std::string(argv[2]));
 
-  // Read the input
+  // Determine the length of the sequence
   auto start = std::chrono::steady_clock::now();
-  auto m = makeMatrix(filename, length, nsamples);
+  unsigned int length = 0;
+  std::ifstream istream(filename);
+  std::string line;
+  // Consume the header line
+  std::getline(istream, line);
+  while(true)
+  {
+    std::getline(istream, line);
+    if(line.substr(0, 1) == ">")
+      break;
+    else
+      length += line.size();
+  }
+  istream.close();
   auto stop = std::chrono::steady_clock::now();
   std::chrono::duration<double> elapsed_seconds = stop - start;
+  std::cout << "Determining sequence length of " << length << " took " << elapsed_seconds.count() << "s" << std::endl;
+
+  // Read the input
+  start = std::chrono::steady_clock::now();
+  auto m = makeMatrix(filename, length, nsamples);
+  stop = std::chrono::steady_clock::now();
+  elapsed_seconds = stop - start;
   std::cout << "Parsing input fasta file took " << elapsed_seconds.count() << "s" << std::endl;
 
   // Properly resize the output array
