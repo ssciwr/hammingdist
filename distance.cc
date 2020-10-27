@@ -5,7 +5,6 @@
 #include<string>
 
 int main(int argc, char *argv[]	) {
-  // Parse arguments. Sequence length currently fixed at compile time
   std::string filename = std::string(argv[1]);
   std::size_t nsamples = std::stoi(std::string(argv[2]));
 
