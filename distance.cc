@@ -100,11 +100,13 @@ int main(int argc, char *argv[]	) {
     for(std::size_t j=0; j<nsamples; ++j)
     {
       if(i == j)
-        stream << 0 << ", ";
+        stream << 0;
       if(i < j)
-        stream << result[j][i] << ", ";
+        stream << result[j][i];
       if(i > j)
-        stream << result[i][j] << ", ";
+        stream << result[i][j];
+      if (j != nsamples - 1)
+        stream << ", ";
     }
     stream << std::endl;
   }
