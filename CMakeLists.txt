@@ -11,7 +11,7 @@ target_link_libraries(distance PUBLIC libhamming)
 
 # The python package
 add_subdirectory(pybind11)
-pybind11_add_module(hammingdist pythonlib.cc)
+pybind11_add_module(hammingdist EXCLUDE_FROM_ALL pythonlib.cc)
 target_link_libraries(hammingdist PUBLIC libhamming)
 
 include(FeatureSummary)
