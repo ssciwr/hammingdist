@@ -7,7 +7,7 @@ namespace py = pybind11;
 
 PYBIND11_MODULE(hammingdist,m)
 {
-  m.doc() = "Small to calculate Hamming distances between gene sequences";
+  m.doc() = "Small tool to calculate Hamming distances between gene sequences";
 
   py::class_<DataSet>(m, "DataSet")
       .def("dump", &DataSet::dump)
