@@ -1,12 +1,45 @@
 A small C++ tool to calculate pairwise distances between gene sequences given in fasta format.
 
+# Python interface
+
+To use the Python interface, you should install it from PyPI:
+
+```
+python -m pip install hammingdist
+```
+
+Then, you can e.g. use it in the following way from Python:
+
+```
+import hammingdist
+
+# This accepts excactly the same two arguments as the stand-alone
+# executable: A fasta file and the maximum number of sequences to consider
+data = hammingdist.from_fasta("example.fasta", 100)
+
+# The distance data can be accessed point-wise, though looping over all distances might be quite inefficient
+print(data[14,42])
+
+# The data can be written to disk and retrieved:
+data.dump("backup.csv")
+retrieval = hammingdist.from_csv("backup.csv")
+
+# Finally, we can pass the data as a list of strings in Python:
+data = hammingdist.from_stringlist(["ACGTACGT", "ACGTAGGT", "ATTTACGT"])
+
+# When in doubt, the internal data structures of the DataSet object can be inspected:
+print(data._data)
+print(data._distances)
+```
+
 # Prerequisites
 
-The following software is currently required:
+The following software is currently required if you build from scratch:
 
 * git
 * CMake >= 3.11
 * A reasonably new C++ compiler
+* Python 3
 
 # Building
 
@@ -41,3 +74,26 @@ gene sequences in the dataset.
 
 The output is currently written to a file `distances.csv`. The output is a full
 matrix, not only the triangular part of the symmetric matrix.
+
+# Building the Python interface
+
+This sequence of command should build the Python interface:
+
+```
+git clone --recursive https://gitlab.dune-project.org/dominic/covid-tda.git
+cd covid-tda
+
+mkdir build
+cd build
+cmake -DCMAKE_BUILD_TYPE=Release ..
+make hammingdist
+```
+
+# Deploying the Python interface
+
+In order to do this, `docker` needs to be installed and the permissions for `docker`
+must be given. Then, the deployment process should be automated like this:
+
+```
+./bin/deploy.sh
+```

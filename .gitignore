@@ -1,3 +1,6 @@
 build
 build-debug
+dist
+wheelhouse
+*.egg-info
 *.fasta
