@@ -10,7 +10,7 @@
 static std::array<Gene, 256> lookupTable()
 {
   std::array<Gene, 256> lookup;
-  std::fill(lookup.begin(), lookup.end(), 0);
+  std::fill(lookup.begin(), lookup.end(), 0xFF);
   lookup[std::size_t('A')] = 1 << 1;
   lookup[std::size_t('C')] = 1 << 2;
   lookup[std::size_t('G')] = 1 << 3;
@@ -22,7 +22,7 @@ static std::array<Gene, 256> lookupTable()
 static int distance(const std::vector<Gene>& a, const std::vector<Gene>& b){
   int r{0};
   for (std::size_t i=0; i<a.size(); ++i)
-    if(a[i] ^ b[i])
+    if((a[i] & b[i]) == 0)
       ++r;
   return r;
 }
