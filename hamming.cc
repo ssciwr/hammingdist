@@ -22,8 +22,7 @@ static std::array<Gene, 256> lookupTable()
 static int distance(const std::vector<Gene>& a, const std::vector<Gene>& b){
   int r{0};
   for (std::size_t i=0; i<a.size(); ++i)
-    if((a[i] & b[i]) == 0)
-      ++r;
+      r += static_cast<int>((a[i] & b[i]) == 0);
   return r;
 }
 
@@ -134,7 +133,7 @@ DataSet from_fasta(const std::string& filename, std::size_t n)
       while(iss >> buffer)
         v[pos++] = lookup[std::size_t(buffer)];
     }
-   
+
     ++count;
   }
 
