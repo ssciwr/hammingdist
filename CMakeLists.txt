@@ -6,6 +6,12 @@ cmake_minimum_required(VERSION 3.11)
 add_library(hamming STATIC hamming.cc)
 target_compile_options(hamming PUBLIC -fPIC)
 
+# Build library benchmarks
+set(BENCHMARK_ENABLE_GTEST_TESTS OFF)
+add_subdirectory(benchmark)
+add_executable(benchhamming hamming_bench.cc)
+target_link_libraries(benchhamming libhamming benchmark::benchmark)
+
 # The standalone executable
 add_executable(distance distance.cc)
 target_link_libraries(distance PUBLIC hamming)
