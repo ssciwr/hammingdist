@@ -8,9 +8,10 @@ target_compile_options(hamming PUBLIC -fPIC)
 
 # Build library benchmarks
 set(BENCHMARK_ENABLE_GTEST_TESTS OFF)
+set(BENCHMARK_ENABLE_TESTING OFF)
 add_subdirectory(benchmark)
 add_executable(benchhamming hamming_bench.cc)
-target_link_libraries(benchhamming libhamming benchmark::benchmark)
+target_link_libraries(benchhamming hamming benchmark::benchmark)
 
 # Build tests
 include(CTest)
