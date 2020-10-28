@@ -3,16 +3,17 @@ project(covid-tda LANGUAGES CXX)
 cmake_minimum_required(VERSION 3.11)
 
 # Build library
-add_library(libhamming SHARED hamming.cc)
+add_library(hamming STATIC hamming.cc)
+target_compile_options(hamming PUBLIC -fPIC)
 
 # The standalone executable
 add_executable(distance distance.cc)
-target_link_libraries(distance PUBLIC libhamming)
+target_link_libraries(distance PUBLIC hamming)
 
 # The python package
 add_subdirectory(pybind11)
 pybind11_add_module(hammingdist EXCLUDE_FROM_ALL pythonlib.cc)
-target_link_libraries(hammingdist PUBLIC libhamming)
+target_link_libraries(hammingdist PUBLIC hamming)
 
 include(FeatureSummary)
 feature_summary(WHAT ALL)
