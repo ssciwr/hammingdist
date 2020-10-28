@@ -82,8 +82,18 @@ This sequence of command should build the Python interface:
 ```
 git clone --recursive https://gitlab.dune-project.org/dominic/covid-tda.git
 cd covid-tda
+
 mkdir build
 cd build
 cmake -DCMAKE_BUILD_TYPE=Release ..
 make hammingdist
+```
+
+# Deploying the Python interface
+
+In order to do this, `docker` needs to be installed and the permissions for `docker`
+must be given. Then, the deployment process should be automated like this:
+
+```
+./bin/deploy.sh
 ```
