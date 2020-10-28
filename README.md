@@ -52,9 +52,11 @@ mkdir build
 cd build
 cmake -DCMAKE_BUILD_TYPE=Release ..
 make distance
+make test
 ```
 
-This should (successfully) build the executable `distance` in the `build` subdirectory.
+This should (successfully) build the executable `distance` in the `build` subdirectory,
+and run the tests.
 If `cmake` picks up the wrong compiler, it can be explicitly enforced by adding
 `-DCMAKE_CXX_COMPILER=<path-to-compiler>` to the cmake call (in that case it is best
 to remove the build directory and start from scratch).
@@ -88,6 +90,9 @@ cd build
 cmake -DCMAKE_BUILD_TYPE=Release ..
 make hammingdist
 ```
+
+If the wrong version of Python is found, it can be set by adding `-DPYTHON_EXECUTABLE=\path\to\python`
+to the cmake command.
 
 # Deploying the Python interface
 
