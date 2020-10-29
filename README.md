@@ -13,7 +13,7 @@ Then, you can e.g. use it in the following way from Python:
 ```
 import hammingdist
 
-# This accepts excactly the same two arguments as the stand-alone
+# This accepts exactly the same two arguments as the stand-alone
 # executable: A fasta file and the maximum number of sequences to consider
 data = hammingdist.from_fasta("example.fasta", 100)
 
@@ -60,6 +60,8 @@ and run the tests.
 If `cmake` picks up the wrong compiler, it can be explicitly enforced by adding
 `-DCMAKE_CXX_COMPILER=<path-to-compiler>` to the cmake call (in that case it is best
 to remove the build directory and start from scratch).
+
+To enable OpenMP multi-threading, add `-DHAMMING_WITH_OPENMP=ON` to the cmake call.
 
 # Running
 

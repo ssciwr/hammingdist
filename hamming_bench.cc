@@ -3,6 +3,9 @@
 #include <random>
 #include <string>
 #include <vector>
+#ifdef HAMMING_WITH_OPENMP
+#include <omp.h>
+#endif
 
 static std::vector<std::string> make_stringlist(int64_t n) {
   std::vector<std::string> v;
@@ -22,6 +25,9 @@ static std::vector<std::string> make_stringlist(int64_t n) {
 }
 
 static void bench_from_stringlist(benchmark::State &state) {
+#ifdef HAMMING_WITH_OPENMP
+  omp_set_num_threads(1);
+#endif
   int64_t n{state.range(0)};
   auto v{make_stringlist(n)};
   for (auto _ : state) {
@@ -29,6 +35,17 @@ static void bench_from_stringlist(benchmark::State &state) {
   }
   state.SetComplexityN(n);
 }
+
+#ifdef HAMMING_WITH_OPENMP
+static void bench_from_stringlist_omp(benchmark::State &state) {
+  omp_set_num_threads(state.range(0));
+  auto v{make_stringlist(4096)};
+  for (auto _ : state) {
+    from_stringlist(v);
+  }
+}
+BENCHMARK(bench_from_stringlist_omp)->Arg(1)->Arg(2)->Arg(4)->Arg(8)->Arg(12)->Arg(24);
+#endif
 
 BENCHMARK(bench_from_stringlist)->Range(32, 2048)->Complexity();
 

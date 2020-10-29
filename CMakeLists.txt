@@ -2,9 +2,18 @@ project(covid-tda LANGUAGES CXX)
 
 cmake_minimum_required(VERSION 3.11)
 
+set(HAMMING_WITH_OPENMP
+    no
+    CACHE BOOL "Build with OpenMP support (multithreading)")
+
 # Build library
 add_library(hamming STATIC hamming.cc)
 target_compile_options(hamming PUBLIC -fPIC)
+if(HAMMING_WITH_OPENMP)
+  find_package(OpenMP REQUIRED)
+  target_compile_definitions(hamming PUBLIC HAMMING_WITH_OPENMP)
+  target_link_libraries(hamming PRIVATE OpenMP::OpenMP_CXX)
+endif()
 
 # Build library benchmarks
 set(BENCHMARK_ENABLE_GTEST_TESTS OFF)

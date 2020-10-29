@@ -7,7 +7,9 @@
 #include<string>
 #include<vector>
 #include<limits>
-
+#ifdef HAMMING_WITH_OPENMP
+#include<omp.h>
+#endif
 // 4-bit representation of gene:
 constexpr std::size_t n_bits_per_gene{4};
 constexpr GeneBlock mask_gene0{0x0f};
@@ -48,6 +50,9 @@ DataSet::DataSet(const std::vector<std::vector<GeneBlock>>& data_)
   , result((nsamples - 1) * nsamples / 2, 0)
 {
   std::size_t pos = 0;
+#ifdef HAMMING_WITH_OPENMP
+  #pragma omp parallel for
+#endif
   for(std::size_t i=0; i<nsamples; ++i)
     for(std::size_t j=0; j<i; ++j)
       result[pos++] = distance(data[i], data[j]);
