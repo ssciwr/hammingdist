@@ -85,27 +85,31 @@ int DataSet::operator[](const std::array<std::size_t, 2>& index) const
   return 0;
 }
 
+static std::vector<GeneBlock> from_string(const std::string& str){
+  std::vector<GeneBlock> r;
+  auto lookup = lookupTable();
+  std::size_t n_full_blocks{str.size()/2};
+  r.reserve(1+n_full_blocks);
+  auto iter_str = str.cbegin();
+  for (std::size_t i_block = 0; i_block < n_full_blocks; ++i_block) {
+    r.push_back(lookup[*iter_str] & mask_gene0);
+    ++iter_str;
+    r.back() |= (lookup[*iter_str] & mask_gene1);
+    ++iter_str;
+  }
+  // pad last GeneBlock if odd number of chars
+  if(iter_str != str.cend()){
+    r.push_back(lookup[*iter_str] & mask_gene0);
+    r.back() |= (lookup['-'] & mask_gene1);
+  }
+  return r;
+}
+
 DataSet from_stringlist(const std::vector<std::string> &data) {
   std::vector<std::vector<GeneBlock>> result;
   result.reserve(data.size());
-  auto lookup = lookupTable();
   for (const auto &str : data) {
-    std::size_t n_full_blocks{str.size()/2};
-    result.emplace_back();
-    auto &r = result.back();
-    r.reserve(1+n_full_blocks);
-    auto iter_str = str.cbegin();
-    for (std::size_t i_block = 0; i_block < n_full_blocks; ++i_block) {
-        r.push_back(lookup[*iter_str] & mask_gene0);
-        ++iter_str;
-        r.back() |= (lookup[*iter_str] & mask_gene1);
-        ++iter_str;
-    }
-    // pad last GeneBlock if odd number of chars
-    if(iter_str != str.cend()){
-        r.push_back(lookup[*iter_str] & mask_gene0);
-        r.back() |= (lookup['-'] & mask_gene1);
-    }
+      result.push_back(from_string(str));
   }
   return DataSet(result);
 }
@@ -117,48 +121,23 @@ DataSet from_csv(const std::string& filename)
 
 DataSet from_fasta(const std::string& filename, std::size_t n)
 {
-  // Determine the length of the sequence in the given fasta file
-  unsigned int l = 0;
-  std::ifstream istream(filename);
-  std::string line;
-  // Consume the header line
-  std::getline(istream, line);
-  while(true)
-  {
-    std::getline(istream, line);
-    if(line.substr(0, 1) == ">")
-      break;
-    else
-      l += line.size();
-  }
-  istream.close();
-
   std::vector<std::vector<GeneBlock>> m;
   m.reserve(n);
-
   // Initializing the stream
   std::ifstream stream(filename);
   std::size_t count = 0;
-  unsigned char buffer;
-  auto lookup = lookupTable();
-
-  // The while-condition consumes the header line
-  while((count < n) && (std::getline(stream, line)))
+  std::string line;
+  // skip first header
+  std::getline(stream, line);
+  while(count < n)
   {
-    m.emplace_back();
-    auto &v = m.back();
-    v.resize(l);
-    std::size_t pos = 0;
-
-    while((pos < l) && (std::getline(stream, line)))
+    std::string seq;
+    while(std::getline(stream, line) && line[0] != '>')
     {
-      std::istringstream iss(line);
-      while(iss >> buffer)
-        v[pos++] = lookup[std::size_t(buffer)];
+      seq.append(line);
     }
-
+    m.push_back(from_string(seq));
     ++count;
   }
-
   return DataSet(m);
 }
