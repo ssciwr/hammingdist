@@ -9,8 +9,8 @@
 
 static std::array<Gene, 256> lookupTable()
 {
-  std::array<Gene, 256> lookup;
-  std::fill(lookup.begin(), lookup.end(), 0xFF);
+  std::array<Gene, 256> lookup{};
+  lookup[std::size_t('-')] = 0xff;
   lookup[std::size_t('A')] = 1 << 1;
   lookup[std::size_t('C')] = 1 << 2;
   lookup[std::size_t('G')] = 1 << 3;
