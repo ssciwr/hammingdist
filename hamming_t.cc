@@ -68,11 +68,25 @@ TEST_CASE("distance between any invalid char & '-' is 1", "[distance]") {
   }
 }
 
-TEST_CASE("from_stringlist", "[hamming]") {
-  std::vector<std::string> v{{"ACGT"}, {"AGGG"}};
-  auto d = from_stringlist(v);
-  REQUIRE(d[{0, 0}] == 0);
-  REQUIRE(d[{0, 1}] == 2);
-  REQUIRE(d[{1, 0}] == 2);
-  REQUIRE(d[{1, 1}] == 0);
+TEST_CASE("two expressions with distance 2", "[hamming]") {
+  std::vector<std::vector<std::string>> expr;
+  expr.push_back({{"AC"}, {"CA"}});
+  expr.push_back({{"AC"}, {"TG"}});
+  expr.push_back({{"ACG"}, {"AGT"}});
+  expr.push_back({{"ACG"}, {"-TT"}});
+  expr.push_back({{"ACG"}, {"T-T"}});
+  expr.push_back({{"ACG"}, {"TA-"}});
+  expr.push_back({{"ACG"}, {"CCC"}});
+  expr.push_back({{"ACGT"}, {"AGGG"}});
+  expr.push_back({{"ACGTGTCGTGTCGACGTGTCG"}, {"ACGTGTCGTTTCGACGAGTCG"}});
+  expr.push_back({{"ACGTGTCGTGTCGACGTGTCGT"}, {"ACGTGTCGTTTCGACGAGTCGT"}});
+  expr.push_back({{"ACGTGTCGTGTCGACGTGTCGT-"}, {"ACGTGTCGTTTCGACGAGTCGTA"}});
+  expr.push_back({{"ACGTGTCGTGTCGACGTGTCG---"}, {"ACGTGTCGTTTCGACGAGTCGGGG"}});
+  for (const auto &v : expr) {
+    auto d = from_stringlist(v);
+    REQUIRE(d[{0, 0}] == 0);
+    REQUIRE(d[{0, 1}] == 2);
+    REQUIRE(d[{1, 0}] == 2);
+    REQUIRE(d[{1, 1}] == 0);
+  }
 }

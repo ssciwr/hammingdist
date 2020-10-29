@@ -6,17 +6,17 @@
 #include<string>
 #include<vector>
 
-using Gene = std::uint_fast8_t;
+using GeneBlock = std::uint_fast8_t;
 
 struct DataSet
 {
-  DataSet(const std::vector<std::vector<Gene>>&);
+  DataSet(const std::vector<std::vector<GeneBlock>>&);
   DataSet(const std::string&);
   void dump(const std::string&);
   int operator[](const std::array<std::size_t, 2>&) const;
 
   std::size_t nsamples;
-  std::vector<std::vector<Gene>> data;
+  std::vector<std::vector<GeneBlock>> data;
   std::vector<int> result;
 };
 
