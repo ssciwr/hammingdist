@@ -5,6 +5,7 @@
 #include <vector>
 
 constexpr std::array<char, 4> valid_chars{'A', 'C', 'G', 'T'};
+constexpr std::array<char, 6> invalid_chars{' ', 'N', '*', '?', 'a', '.'};
 
 static int dist(char c1, char c2) {
   return from_stringlist({std::string{c1}, std::string{c2}})[{0, 1}];
@@ -35,6 +36,35 @@ TEST_CASE("distance between two different valid characters is 1",
         REQUIRE(dist(c1, c2) == 1);
       }
     }
+  }
+}
+
+TEST_CASE("distance between valid & invalid characters is 1", "[distance]") {
+  for (auto c1 : valid_chars) {
+    for (auto c2 : invalid_chars) {
+      CAPTURE(c1);
+      CAPTURE(c2);
+      CAPTURE((int)c2);
+      REQUIRE(dist(c1, c2) == 1);
+    }
+  }
+}
+
+TEST_CASE("distance between two invalid characters is 1", "[distance]") {
+  for (auto c1 : invalid_chars) {
+    for (auto c2 : invalid_chars) {
+      CAPTURE(c1);
+      CAPTURE(c2);
+      REQUIRE(dist(c1, c2) == 1);
+    }
+  }
+}
+
+TEST_CASE("distance between any invalid char & '-' is 1", "[distance]") {
+  for (auto c : invalid_chars) {
+    CAPTURE(c);
+    REQUIRE(dist(c, '-') == 1);
+    REQUIRE(dist('-', c) == 1);
   }
 }
 
