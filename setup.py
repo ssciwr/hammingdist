@@ -63,10 +63,10 @@ class CMakeBuild(build_ext):
 
 setup(
     name='hammingdist',
-    version='0.2',
+    version='0.3',
     author='Dominic Kempf',
     author_email='dominic.kempf@iwr.uni-heidelberg.de',
-    description='A small tool to calculate pairwise Hamming distances between gene sequences for topological data analysis',
+    description='A fast tool to calculate Hamming distances',
     long_description='',
     ext_modules=[CMakeExtension('hammingdist')],
     cmdclass=dict(build_ext=CMakeBuild),
