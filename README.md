@@ -32,6 +32,9 @@ print(data._data)
 print(data._distances)
 ```
 
+The Python package is currently built without OpenMP support, but this can
+be changed upon request.
+
 # Prerequisites
 
 The following software is currently required if you build from scratch:
@@ -40,6 +43,7 @@ The following software is currently required if you build from scratch:
 * CMake >= 3.11
 * A reasonably new C++ compiler
 * Python 3
+* OpenMP for shared memory parallelization (optional)
 
 # Building
 
@@ -78,6 +82,13 @@ gene sequences in the dataset.
 
 The output is currently written to a file `distances.csv`. The output is a full
 matrix, not only the triangular part of the symmetric matrix.
+
+If running in parallel with OpenMP, you can control the number of threads available
+by changing the environment variable `OMP_NUM_THREADS`:
+
+```
+OMP_NUM_THREADS=8 ./distance <path-to-input> <n>
+```
 
 # Building the Python interface
 
