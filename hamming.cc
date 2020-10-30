@@ -7,6 +7,7 @@
 #include<string>
 #include<vector>
 #include<limits>
+#include<stdexcept>
 #ifdef HAMMING_WITH_OPENMP
 #include<omp.h>
 #endif
@@ -44,11 +45,24 @@ static int distance(const std::vector<GeneBlock>& a, const std::vector<GeneBlock
   return r;
 }
 
+static void validate_data(const std::vector<std::vector<GeneBlock>>& data){
+    if(data.empty() || data[0].empty()){
+        throw std::runtime_error("Error: Empty sequence");
+    }
+    auto length{data[0].size()};
+    for(const auto& d : data){
+        if(d.size() != length){
+            throw std::runtime_error("Error: Sequences do not all have the same length");
+        }
+    }
+}
+
 DataSet::DataSet(const std::vector<std::vector<GeneBlock>>& data_)
   : nsamples(data_.size())
   , data(data_)
   , result((nsamples - 1) * nsamples / 2, 0)
 {
+  validate_data(data);
   std::size_t pos = 0;
 #ifdef HAMMING_WITH_OPENMP
   #pragma omp parallel for

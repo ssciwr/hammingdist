@@ -132,3 +132,26 @@ TEST_CASE("from_fasta multi-line sequences", "[hamming]") {
     REQUIRE(d[{1, 1}] == 0);
     std::remove(tmp_file_name);
 }
+
+TEST_CASE("invalid input data: empty sequence", "[invalid]") {
+    std::vector<std::vector<std::string>> expr;
+    expr.push_back({});
+    expr.push_back({{""}, {""}});
+    std::string msg{"Error: Empty sequence"};
+    for (const auto &v : expr) {
+        REQUIRE_THROWS_WITH(from_stringlist(v), msg);
+    }
+}
+
+TEST_CASE("invalid input data: inconsistent sequence lengths", "[invalid]") {
+    std::vector<std::vector<std::string>> expr;
+    expr.push_back({{"ACGT"}, {"A"}});
+    expr.push_back({{"AC"}, {"ACGTCG"}});
+    expr.push_back({{"ACGT"}, {"ACGT"}, {"ACGT"}, {"A"}, {"ACGT"}, {"ACGT"}});
+    expr.push_back({{"ACGT"}, {"A-----"}});
+    expr.push_back({{"ACGT"}, {""}});
+    std::string msg{"Error: Sequences do not all have the same length"};
+    for (const auto &v : expr) {
+        REQUIRE_THROWS_WITH(from_stringlist(v), msg);
+    }
+}
