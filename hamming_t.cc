@@ -83,7 +83,10 @@ TEST_CASE("two expressions with distance 2", "[hamming]") {
   expr.push_back({{"ACGTGTCGTGTCGACGTGTCG"}, {"ACGTGTCGTTTCGACGAGTCG"}});
   expr.push_back({{"ACGTGTCGTGTCGACGTGTCGT"}, {"ACGTGTCGTTTCGACGAGTCGT"}});
   expr.push_back({{"ACGTGTCGTGTCGACGTGTCGT-"}, {"ACGTGTCGTTTCGACGAGTCGTA"}});
-  expr.push_back({{"ACGTGTCGTGTCGACGTGTCG---"}, {"ACGTGTCGTTTCGACGAGTCGGGG"}});
+  expr.push_back({{"ACGTGTCGTGTCGACGTGTCG----------"}, {"ACGTGTCGTTTCGACGAGTCGGGG-------"}});
+  expr.push_back({{"ACGTGTCGTGTCGACGTGTCG----------A"}, {"ACGTGTCGTTTCGACGAGTCGGGG-------A"}});
+  expr.push_back({{"ACGTGTCGTGTCGACGTGTCG----------AG"}, {"ACGTGTCGTTTCGACGAGTCGGGG-------AG"}});
+  expr.push_back({{"ACGTGTCGTGTCGACGTGTCG---ACGTGTCGTGTCGACGTGTCG---ACGTGTCGTGTCGACGTGTCG---"}, {"ACGTGTCGTTTCGACGAGTCGGGGACGTGTCGTGTCGACGTGTCG---ACGTGTCGTGTCGACGTGTCG---"}});
   for (const auto &v : expr) {
     auto d = from_stringlist(v);
     REQUIRE(d[{0, 0}] == 0);

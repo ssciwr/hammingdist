@@ -10,7 +10,7 @@
 static std::vector<std::string> make_stringlist(int64_t n) {
   std::vector<std::string> v;
   std::mt19937 gen(12345);
-  std::uniform_int_distribution<> distrib(0, 5);
+  std::uniform_int_distribution<> distrib(0, 4);
   std::array<char, 5> c{'A', 'C', 'G', 'T', '-'};
   v.reserve(n);
   for (int64_t row = 0; row < n; ++row) {
