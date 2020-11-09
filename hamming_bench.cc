@@ -47,6 +47,6 @@ static void bench_from_stringlist_omp(benchmark::State &state) {
 BENCHMARK(bench_from_stringlist_omp)->Arg(1)->Arg(2)->Arg(4)->Arg(8)->Arg(12)->Arg(24);
 #endif
 
-BENCHMARK(bench_from_stringlist)->Range(32, 2048)->Complexity();
+BENCHMARK(bench_from_stringlist)->RangeMultiplier(2)->Range(128, 4096)->Complexity();
 
 BENCHMARK_MAIN();
