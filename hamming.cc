@@ -63,13 +63,14 @@ DataSet::DataSet(const std::vector<std::vector<GeneBlock>>& data_)
   , result((nsamples - 1) * nsamples / 2, 0)
 {
   validate_data(data);
-  std::size_t pos = 0;
 #ifdef HAMMING_WITH_OPENMP
   #pragma omp parallel for
 #endif
-  for(std::size_t i=0; i<nsamples; ++i)
+  for(std::size_t i=0; i<nsamples; ++i){
+    std::size_t offset{i * (i - 1) / 2};
     for(std::size_t j=0; j<i; ++j)
-      result[pos++] = distance(data[i], data[j]);
+      result[offset + j] = distance(data[i], data[j]);
+  }
 }
 
 DataSet::DataSet(const std::string& filename)
