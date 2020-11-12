@@ -103,11 +103,13 @@ TEST_CASE("from_fasta single line sequences", "[hamming]") {
     of << ">seq1\n";
     of << "ACGTGTCGTTTCGACGAGTCG\n";
     of.close();
-    auto d = from_fasta(tmp_file_name, 2);
-    REQUIRE(d[{0, 0}] == 0);
-    REQUIRE(d[{0, 1}] == 2);
-    REQUIRE(d[{1, 0}] == 2);
-    REQUIRE(d[{1, 1}] == 0);
+    for(int n : {2, 3, 8}){
+        auto d = from_fasta(tmp_file_name, n);
+        REQUIRE(d[{0, 0}] == 0);
+        REQUIRE(d[{0, 1}] == 2);
+        REQUIRE(d[{1, 0}] == 2);
+        REQUIRE(d[{1, 1}] == 0);
+    }
     std::remove(tmp_file_name);
 }
 
@@ -125,11 +127,13 @@ TEST_CASE("from_fasta multi-line sequences", "[hamming]") {
     of << "ACGTGTCGTGTCGACGTGTCG\n";
     of << "ACGTGTCGTGTCG\n";
     of.close();
-    auto d = from_fasta(tmp_file_name, 2);
-    REQUIRE(d[{0, 0}] == 0);
-    REQUIRE(d[{0, 1}] == 2);
-    REQUIRE(d[{1, 0}] == 2);
-    REQUIRE(d[{1, 1}] == 0);
+    for(int n : {2, 3, 8}){
+        auto d = from_fasta(tmp_file_name, 2);
+        REQUIRE(d[{0, 0}] == 0);
+        REQUIRE(d[{0, 1}] == 2);
+        REQUIRE(d[{1, 0}] == 2);
+        REQUIRE(d[{1, 1}] == 0);
+    }
     std::remove(tmp_file_name);
 }
 

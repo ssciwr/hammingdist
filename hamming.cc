@@ -148,7 +148,7 @@ DataSet from_fasta(const std::string& filename, std::size_t n)
   std::string line;
   // skip first header
   std::getline(stream, line);
-  while(count < n)
+  while(count < n && !stream.eof())
   {
     std::string seq;
     while(std::getline(stream, line) && line[0] != '>')
