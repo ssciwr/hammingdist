@@ -2,44 +2,49 @@ project(covid-tda LANGUAGES CXX)
 
 cmake_minimum_required(VERSION 3.11)
 
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
+# compilation options
 set(HAMMING_WITH_OPENMP
     no
     CACHE BOOL "Build with OpenMP support (multithreading)")
 
-# Build library
-add_library(hamming STATIC hamming.cc hamming_impl.cc)
-target_compile_options(hamming PUBLIC -fPIC)
-if(HAMMING_WITH_OPENMP)
-  find_package(OpenMP REQUIRED)
-  target_compile_definitions(hamming PUBLIC HAMMING_WITH_OPENMP)
-  target_link_libraries(hamming PRIVATE OpenMP::OpenMP_CXX)
-endif()
+set(HAMMING_BUILD_BENCHMARKS
+    yes
+    CACHE BOOL "Build hamming benchmarks")
 
-# Build library benchmarks
-set(BENCHMARK_ENABLE_GTEST_TESTS OFF)
-set(BENCHMARK_ENABLE_TESTING OFF)
-add_subdirectory(benchmark)
-add_executable(benchhamming hamming_bench.cc)
-target_link_libraries(benchhamming hamming benchmark::benchmark)
+set(HAMMING_BUILD_PYTHON
+    yes
+    CACHE BOOL "Build hammingdist python interface")
 
-# Build tests
+set(HAMMING_WITH_SSE2
+    yes
+    CACHE BOOL "Enable SSE2 optimized code")
+
+set(HAMMING_WITH_AVX2
+    yes
+    CACHE BOOL "Enable AVX2 optimized code")
+
+set(HAMMING_WITH_AVX512
+    yes
+    CACHE BOOL "Enable AVX512 optimized code")
+
+# Add git submodules
+add_subdirectory(ext)
+
 include(CTest)
-if(BUILD_TESTING)
-  add_subdirectory(Catch2)
-  include(Catch2/contrib/Catch.cmake)
-  add_executable(test_hamming hamming_t.cc hamming_impl_t.cc)
-  target_link_libraries(test_hamming hamming Catch2::Catch2)
-  catch_discover_tests(test_hamming)
-endif()
+
+# Build the hamming library
+add_subdirectory(src)
 
 # The standalone executable
 add_executable(distance distance.cc)
 target_link_libraries(distance PUBLIC hamming)
 
 # The python package
-add_subdirectory(pybind11)
-pybind11_add_module(hammingdist EXCLUDE_FROM_ALL pythonlib.cc)
-target_link_libraries(hammingdist PUBLIC hamming)
+if(HAMMING_BUILD_PYTHON)
+    add_subdirectory(python)
+endif()
 
 include(FeatureSummary)
 feature_summary(WHAT ALL)

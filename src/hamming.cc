@@ -1,4 +1,4 @@
-#include"hamming.hh"
+#include"hamming/hamming.hh"
 #include"hamming_impl.hh"
 
 #include<array>
@@ -10,6 +10,8 @@
 #ifdef HAMMING_WITH_OPENMP
 #include<omp.h>
 #endif
+
+namespace hamming {
 
 DataSet::DataSet(const std::vector<std::vector<GeneBlock>>& data_)
   : nsamples(data_.size())
@@ -94,4 +96,6 @@ DataSet from_fasta(const std::string& filename, std::size_t n)
     ++count;
   }
   return DataSet(m);
+}
+
 }
