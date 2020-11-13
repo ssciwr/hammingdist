@@ -18,6 +18,8 @@ std::array<GeneBlock, 256> lookupTable();
 
 std::vector<int> distances(const std::vector<std::vector<GeneBlock>>& data);
 
+int distance_sparse(const std::vector<std::size_t>& a, const std::vector<std::size_t>& b);
+
 int distance_cpp(const std::vector<GeneBlock>& a, const std::vector<GeneBlock>& b);
 
 void validate_data(const std::vector<std::vector<GeneBlock>>& data);

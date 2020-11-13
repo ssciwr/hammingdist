@@ -68,6 +68,39 @@ std::vector<int> distances(const std::vector<std::vector<GeneBlock>>& data){
   return result;
 }
 
+int distance_sparse(const std::vector<std::size_t>& a, const std::vector<std::size_t>& b){
+    int r{0};
+    std::size_t ia{0};
+    std::size_t ib{0};
+    while(ia < a.size() && ib < b.size()){
+        if(a[ia] < b[ib]){
+            // add distance contribution from a
+            r += static_cast<int>(a[ia+1] != 0xff);
+            ia += 2;
+        } else if(a[ia] > b[ib]){
+            // add distance contribution from b
+            r += static_cast<int>(b[ib+1] != 0xff);
+            ib += 2;
+        } else {
+            // a and b have the same index: i.e. overlap
+            // so add distance contribution from combination
+            r += static_cast<int>((a[ia+1] & b[ib+1]) == 0);
+            // advance both
+            ia += 2;
+            ib += 2;
+        }
+    }
+    while(ia < a.size()){
+        r += static_cast<int>(a[ia+1] != 0xff);
+        ia += 2;
+    }
+    while(ib < b.size()){
+        r += static_cast<int>(b[ib+1] != 0xff);
+        ib += 2;
+    }
+    return r;
+}
+
 int distance_cpp(const std::vector<GeneBlock>& a, const std::vector<GeneBlock>& b){
     int r{0};
     for (std::size_t i=0; i<a.size(); ++i) {
