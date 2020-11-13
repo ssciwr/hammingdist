@@ -7,26 +7,14 @@
 #include<sstream>
 #include<string>
 #include<vector>
-#ifdef HAMMING_WITH_OPENMP
-#include<omp.h>
-#endif
 
 namespace hamming {
 
 DataSet::DataSet(const std::vector<std::vector<GeneBlock>>& data_)
   : nsamples(data_.size())
-  , data(data_)
-  , result((nsamples - 1) * nsamples / 2, 0)
 {
-  validate_data(data);
-#ifdef HAMMING_WITH_OPENMP
-  #pragma omp parallel for
-#endif
-  for(std::size_t i=0; i<nsamples; ++i){
-    std::size_t offset{i * (i - 1) / 2};
-    for(std::size_t j=0; j<i; ++j)
-      result[offset + j] = distance(data[i], data[j]);
-  }
+  validate_data(data_);
+  result = distances(data_);
 }
 
 DataSet::DataSet(const std::string& filename)

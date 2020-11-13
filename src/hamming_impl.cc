@@ -36,6 +36,20 @@ std::array<GeneBlock, 256> lookupTable()
   return lookup;
 }
 
+std::vector<int> distances(const std::vector<std::vector<GeneBlock>>& data){
+    std::size_t nsamples{data.size()};
+    std::vector<int> result((nsamples - 1) * nsamples/2, 0);
+#ifdef HAMMING_WITH_OPENMP
+  #pragma omp parallel for
+#endif
+  for(std::size_t i=0; i<nsamples; ++i){
+    std::size_t offset{i * (i - 1) / 2};
+    for(std::size_t j=0; j<i; ++j)
+      result[offset + j] = distance(data[i], data[j]);
+  }
+  return result;
+}
+
 int distance_cpp(const std::vector<GeneBlock>& a, const std::vector<GeneBlock>& b){
     int r{0};
     for (std::size_t i=0; i<a.size(); ++i) {

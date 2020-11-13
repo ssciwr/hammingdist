@@ -28,7 +28,6 @@ retrieval = hammingdist.from_csv("backup.csv")
 data = hammingdist.from_stringlist(["ACGTACGT", "ACGTAGGT", "ATTTACGT"])
 
 # When in doubt, the internal data structures of the DataSet object can be inspected:
-print(data._data)
 print(data._distances)
 ```
 

@@ -18,7 +18,6 @@ struct DataSet
   int operator[](const std::array<std::size_t, 2>&) const;
 
   std::size_t nsamples;
-  std::vector<std::vector<GeneBlock>> data;
   std::vector<int> result;
 };
 

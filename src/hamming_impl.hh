@@ -16,6 +16,8 @@ constexpr GeneBlock mask_gene1{0xf0};
 
 std::array<GeneBlock, 256> lookupTable();
 
+std::vector<int> distances(const std::vector<std::vector<GeneBlock>>& data);
+
 int distance_cpp(const std::vector<GeneBlock>& a, const std::vector<GeneBlock>& b);
 
 int distance(const std::vector<GeneBlock>& a, const std::vector<GeneBlock>& b);
