@@ -15,7 +15,7 @@
 #ifdef HAMMING_WITH_OPENMP
 #include<omp.h>
 #endif
-
+#include <iostream>
 namespace hamming {
 
 // bit meaning:
@@ -42,13 +42,15 @@ std::vector<int> distances(const std::vector<std::string>& data){
   auto sparse = to_sparse_data(data);
   std::size_t nsamples{data.size()};
 
-  // if < 0.1% of values differ from reference genome, use sparse distance function
-  constexpr double sparse_threshold{0.001};
+  // if < 0.5% of values differ from reference genome, use sparse distance function
+  constexpr double sparse_threshold{0.005};
   std::size_t n_diff{0};
   for(const auto& s : sparse){
       n_diff += s.size()/2;
   }
-  if(static_cast<double>(n_diff) / static_cast<double>(data.size()*data[0].size()) < sparse_threshold){
+  double frac_diff{static_cast<double>(n_diff) / static_cast<double>(data.size()*data[0].size())};
+  if(frac_diff < sparse_threshold){
+      std::cout << "!! " << frac_diff << std::endl;
     #ifdef HAMMING_WITH_OPENMP
       #pragma omp parallel for
     #endif
