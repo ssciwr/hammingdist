@@ -10,19 +10,24 @@ namespace hamming {
 
 // 4-bit representation of gene:
 using GeneBlock = std::uint_fast8_t;
+using SparseData = std::vector<std::size_t>;
 constexpr std::size_t n_bits_per_gene{4};
 constexpr GeneBlock mask_gene0{0x0f};
 constexpr GeneBlock mask_gene1{0xf0};
 
 std::array<GeneBlock, 256> lookupTable();
 
-std::vector<int> distances(const std::vector<std::vector<GeneBlock>>& data);
+std::vector<int> distances(const std::vector<std::string>& data);
 
-int distance_sparse(const std::vector<std::size_t>& a, const std::vector<std::size_t>& b);
+int distance_sparse(const SparseData& a, const SparseData& b);
 
 int distance_cpp(const std::vector<GeneBlock>& a, const std::vector<GeneBlock>& b);
 
-void validate_data(const std::vector<std::vector<GeneBlock>>& data);
+void validate_data(const std::vector<std::string>& data);
+
+std::vector<SparseData> to_sparse_data(const std::vector<std::string>& data);
+
+std::vector<std::vector<GeneBlock>> to_dense_data(const std::vector<std::string>& data);
 
 std::vector<GeneBlock> from_string(const std::string& str);
 

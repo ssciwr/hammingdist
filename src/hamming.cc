@@ -10,7 +10,7 @@
 
 namespace hamming {
 
-DataSet::DataSet(const std::vector<std::vector<GeneBlock>>& data_)
+DataSet::DataSet(const std::vector<std::string>& data_)
   : nsamples(data_.size())
 {
   validate_data(data_);
@@ -50,12 +50,7 @@ int DataSet::operator[](const std::array<std::size_t, 2>& index) const
 }
 
 DataSet from_stringlist(const std::vector<std::string> &data) {
-  std::vector<std::vector<GeneBlock>> result;
-  result.reserve(data.size());
-  for (const auto &str : data) {
-      result.push_back(from_string(str));
-  }
-  return DataSet(result);
+  return DataSet(data);
 }
 
 DataSet from_csv(const std::string& filename)
@@ -65,8 +60,8 @@ DataSet from_csv(const std::string& filename)
 
 DataSet from_fasta(const std::string& filename, std::size_t n)
 {
-  std::vector<std::vector<GeneBlock>> m;
-  m.reserve(n);
+  std::vector<std::string> data;
+  data.reserve(n);
   // Initializing the stream
   std::ifstream stream(filename);
   std::size_t count = 0;
@@ -75,15 +70,15 @@ DataSet from_fasta(const std::string& filename, std::size_t n)
   std::getline(stream, line);
   while(count < n && !stream.eof())
   {
-    std::string seq;
+    data.emplace_back();
+    auto& seq = data.back();
     while(std::getline(stream, line) && line[0] != '>')
     {
       seq.append(line);
     }
-    m.push_back(from_string(seq));
     ++count;
   }
-  return DataSet(m);
+  return DataSet(data);
 }
 
 }
