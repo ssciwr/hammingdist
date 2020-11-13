@@ -1,13 +1,12 @@
-#define CATCH_CONFIG_MAIN
-#include "hamming.hh"
-#include <catch2/catch.hpp>
-#include <string>
-#include <vector>
+#include "hamming/hamming.hh"
+#include "tests.hh"
 #include <fstream>
 #include <cstdio>
 
-constexpr std::array<char, 4> valid_chars{'A', 'C', 'G', 'T'};
-constexpr std::array<char, 6> invalid_chars{' ', 'N', '*', '?', 'a', '.'};
+using namespace hamming;
+
+static constexpr std::array<char, 4> valid_chars{'A', 'C', 'G', 'T'};
+static constexpr std::array<char, 6> invalid_chars{' ', 'N', '*', '?', 'a', '.'};
 
 static int dist(char c1, char c2) {
   return from_stringlist({std::string{c1}, std::string{c2}})[{0, 1}];

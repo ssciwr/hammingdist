@@ -6,6 +6,8 @@
 #include<string>
 #include<vector>
 
+namespace hamming {
+
 using GeneBlock = std::uint_fast8_t;
 
 struct DataSet
@@ -23,5 +25,7 @@ struct DataSet
 DataSet from_stringlist(const std::vector<std::string>&);
 DataSet from_csv(const std::string&);
 DataSet from_fasta(const std::string&, std::size_t);
+
+}
 
 #endif

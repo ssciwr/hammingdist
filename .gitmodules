@@ -1,11 +1,17 @@
 [submodule "pybind11"]
-	path = pybind11
+	path = ext/pybind11
 	url = https://github.com/pybind/pybind11.git
 
 [submodule "benchmark"]
-	path = benchmark
+	path = ext/benchmark
 	url = git://github.com/google/benchmark.git
 
-[submodule "Catch2"]
-	path = Catch2
+[submodule "cpu_features"]
+	path = ext/cpu_features
+	url = git://github.com/google/cpu_features.git
+[submodule "ext/Catch2"]
+	path = ext/Catch2
 	url = git://github.com/catchorg/Catch2.git
+[submodule "ext/benchmark"]
+	path = ext/benchmark
+	url = git://github.com/google/benchmark.git
