@@ -20,8 +20,6 @@ std::vector<int> distances(const std::vector<std::vector<GeneBlock>>& data);
 
 int distance_cpp(const std::vector<GeneBlock>& a, const std::vector<GeneBlock>& b);
 
-int distance(const std::vector<GeneBlock>& a, const std::vector<GeneBlock>& b);
-
 void validate_data(const std::vector<std::vector<GeneBlock>>& data);
 
 std::vector<GeneBlock> from_string(const std::string& str);

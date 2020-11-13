@@ -37,15 +37,33 @@ std::array<GeneBlock, 256> lookupTable()
 }
 
 std::vector<int> distances(const std::vector<std::vector<GeneBlock>>& data){
-    std::size_t nsamples{data.size()};
-    std::vector<int> result((nsamples - 1) * nsamples/2, 0);
+  std::vector<int> result((data.size() - 1) * data.size()/2, 0);
+  // choose fastest supported distance function
+  const auto features = cpu_features::GetX86Info().features;
+  int (*distance_func)(const std::vector<GeneBlock>& a, const std::vector<GeneBlock>& b) = distance_cpp;
+#ifdef HAMMING_WITH_AVX512
+  if(features.avx512bw){
+    distance_func = distance_avx512;
+  }
+#endif
+#ifdef HAMMING_WITH_AVX2
+  if(features.avx2){
+    distance_func = distance_avx2;
+  }
+#endif
+#ifdef HAMMING_WITH_SSE2
+  if(features.sse2){
+    distance_func = distance_sse2;
+  }
+#endif
+  std::size_t nsamples{data.size()};
 #ifdef HAMMING_WITH_OPENMP
   #pragma omp parallel for
 #endif
   for(std::size_t i=0; i<nsamples; ++i){
     std::size_t offset{i * (i - 1) / 2};
     for(std::size_t j=0; j<i; ++j)
-      result[offset + j] = distance(data[i], data[j]);
+      result[offset + j] = distance_func(data[i], data[j]);
   }
   return result;
 }
@@ -58,26 +76,6 @@ int distance_cpp(const std::vector<GeneBlock>& a, const std::vector<GeneBlock>& 
       r += static_cast<int>((c & mask_gene1) == 0);
     }
     return r;
-}
-
-int distance(const std::vector<GeneBlock>& a, const std::vector<GeneBlock>& b){
-  const auto features = cpu_features::GetX86Info().features;
-#ifdef HAMMING_WITH_AVX512
-  if(features.avx512bw){
-    return distance_avx512(a,b);
-  }
-#endif
-#ifdef HAMMING_WITH_AVX2
-  if(features.avx2){
-    return distance_avx2(a,b);
-  }
-#endif
-#ifdef HAMMING_WITH_SSE2
-  if(features.sse2){
-    return distance_sse2(a,b);
-  }
-#endif
-  return distance_cpp(a,b);
 }
 
 void validate_data(const std::vector<std::vector<GeneBlock>>& data){
