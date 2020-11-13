@@ -9,6 +9,8 @@
 
 namespace hamming {
 
+std::string make_test_string(int n, std::mt19937 &gen);
+
 std::vector<GeneBlock> make_gene_vector(int n, std::mt19937 &gen);
 
 }
