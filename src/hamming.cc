@@ -7,26 +7,14 @@
 #include<sstream>
 #include<string>
 #include<vector>
-#ifdef HAMMING_WITH_OPENMP
-#include<omp.h>
-#endif
 
 namespace hamming {
 
-DataSet::DataSet(const std::vector<std::vector<GeneBlock>>& data_)
+DataSet::DataSet(const std::vector<std::string>& data_)
   : nsamples(data_.size())
-  , data(data_)
-  , result((nsamples - 1) * nsamples / 2, 0)
 {
-  validate_data(data);
-#ifdef HAMMING_WITH_OPENMP
-  #pragma omp parallel for
-#endif
-  for(std::size_t i=0; i<nsamples; ++i){
-    std::size_t offset{i * (i - 1) / 2};
-    for(std::size_t j=0; j<i; ++j)
-      result[offset + j] = distance(data[i], data[j]);
-  }
+  validate_data(data_);
+  result = distances(data_);
 }
 
 DataSet::DataSet(const std::string& filename)
@@ -62,12 +50,7 @@ int DataSet::operator[](const std::array<std::size_t, 2>& index) const
 }
 
 DataSet from_stringlist(const std::vector<std::string> &data) {
-  std::vector<std::vector<GeneBlock>> result;
-  result.reserve(data.size());
-  for (const auto &str : data) {
-      result.push_back(from_string(str));
-  }
-  return DataSet(result);
+  return DataSet(data);
 }
 
 DataSet from_csv(const std::string& filename)
@@ -77,8 +60,8 @@ DataSet from_csv(const std::string& filename)
 
 DataSet from_fasta(const std::string& filename, std::size_t n)
 {
-  std::vector<std::vector<GeneBlock>> m;
-  m.reserve(n);
+  std::vector<std::string> data;
+  data.reserve(n);
   // Initializing the stream
   std::ifstream stream(filename);
   std::size_t count = 0;
@@ -87,15 +70,15 @@ DataSet from_fasta(const std::string& filename, std::size_t n)
   std::getline(stream, line);
   while(count < n && !stream.eof())
   {
-    std::string seq;
+    data.emplace_back();
+    auto& seq = data.back();
     while(std::getline(stream, line) && line[0] != '>')
     {
       seq.append(line);
     }
-    m.push_back(from_string(seq));
     ++count;
   }
-  return DataSet(m);
+  return DataSet(data);
 }
 
 }

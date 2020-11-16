@@ -8,17 +8,14 @@
 
 namespace hamming {
 
-using GeneBlock = std::uint_fast8_t;
-
 struct DataSet
 {
-  DataSet(const std::vector<std::vector<GeneBlock>>&);
+  DataSet(const std::vector<std::string>&);
   DataSet(const std::string&);
   void dump(const std::string&);
   int operator[](const std::array<std::size_t, 2>&) const;
 
   std::size_t nsamples;
-  std::vector<std::vector<GeneBlock>> data;
   std::vector<int> result;
 };
 

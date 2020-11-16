@@ -14,7 +14,6 @@ PYBIND11_MODULE(hammingdist,m)
   py::class_<DataSet>(m, "DataSet")
       .def("dump", &DataSet::dump)
       .def("__getitem__", &DataSet::operator[])
-      .def_readonly("_data", &DataSet::data)
       .def_readonly("_distances", &DataSet::result);
 
   m.def("from_stringlist", &from_stringlist, "Creates a dataset from a list of strings");
