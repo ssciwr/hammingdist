@@ -69,8 +69,8 @@ class CMakeBuild(build_ext):
 setup(
     name='hammingdist',
     version='0.6',
-    author='Dominic Kempf',
-    author_email='dominic.kempf@iwr.uni-heidelberg.de',
+    author='Dominic Kempf, Liam Keegan',
+    author_email='ssc@iwr.uni-heidelberg.de',
     description='A fast tool to calculate Hamming distances',
     long_description='',
     ext_modules=[CMakeExtension('hammingdist')],
