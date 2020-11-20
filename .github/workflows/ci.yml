@@ -1,0 +1,25 @@
+name: CI
+
+on:
+  push:
+    branches: [ $default-branch ]
+  pull_request:
+    branches: [ $default-branch ]
+
+env:
+  BUILD_TYPE: Release
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    # clone the repo
+    - uses: actions/checkout@v2
+
+    # run the ci script
+    - name: ci.sh
+      shell: bash
+      run: .ci/ci.sh
+
