@@ -3,6 +3,7 @@ project(covid-tda LANGUAGES CXX)
 cmake_minimum_required(VERSION 3.11)
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+set(CMAKE_CXX_STANDARD 11)
 
 # compilation options
 set(HAMMING_WITH_OPENMP
