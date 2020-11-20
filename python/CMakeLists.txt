@@ -1,2 +1,2 @@
-pybind11_add_module(hammingdist EXCLUDE_FROM_ALL hammingdist.cc)
+pybind11_add_module(hammingdist hammingdist.cc)
 target_link_libraries(hammingdist PUBLIC hamming)

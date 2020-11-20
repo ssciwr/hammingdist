@@ -2,24 +2,44 @@ name: CI
 
 on:
   push:
-    branches: [ $default-branch ]
+    branches: [ master ]
   pull_request:
-    branches: [ $default-branch ]
+    branches: [ master ]
 
 env:
   BUILD_TYPE: Release
+  AVX2: OFF
+  AVX512: OFF
 
 jobs:
   build:
 
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        os: [ubuntu-18.04, macos-10.15, windows-2019]
 
     steps:
-    # clone the repo
+    # clone the repo & any submodules
     - uses: actions/checkout@v2
+      with:
+        submodules: 'recursive'
 
-    # run the ci script
-    - name: ci.sh
+    - name: make build directory
+      run: cmake -E make_directory ${{runner.workspace}}/build
+
+    - name: configure cmake
       shell: bash
-      run: .ci/ci.sh
+      working-directory: ${{runner.workspace}}/build
+      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DBUILD_TESTING=ON -DHAMMING_BUILD_BENCHMARKS=ON -DHAMMING_WITH_SSE2=ON -DHAMMING_WITH_AVX2=$AVX2 -DHAMMING_WITH_AVX512=$AVX512 -DHAMMING_BUILD_PYTHON=ON
 
+    - name: build
+      shell: bash
+      working-directory: ${{runner.workspace}}/build
+      run: cmake --build .
+
+    - name: run tests
+      shell: bash
+      working-directory: ${{runner.workspace}}/build
+      run: ctest
