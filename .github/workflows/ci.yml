@@ -5,6 +5,9 @@ on:
     branches: [ master ]
   pull_request:
     branches: [ master ]
+  release:
+    types:
+      - published
 
 env:
   BUILD_TYPE: Release
@@ -48,8 +51,8 @@ jobs:
     needs: [build-and-test]
     name: Build wheels on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
-    # Build wheels on every tag starting with 'v' (saves some build time)
-    if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags/v')
+    # Build wheels only when Github releases are created
+    if: github.event_name == 'release' && github.event.action == 'published'
 
     strategy:
       matrix:
@@ -88,8 +91,8 @@ jobs:
   upload_pypi:
     needs: [build-wheels]
     runs-on: ubuntu-latest
-    # upload to PyPI on every tag starting with 'v'
-    if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags/v')
+    # upload to PyPI only when Github releases are created
+    if: github.event_name == 'release' && github.event.action == 'published'
     steps:
       - uses: actions/download-artifact@v2
         with:
