@@ -64,7 +64,7 @@ jobs:
     - name: configure cmake
       shell: bash
       working-directory: ${{runner.workspace}}/build
-      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=Release -DHAMMING_WITH_SSE2=ON -DHAMMING_WITH_AVX2=ON -DHAMMING_WITH_AVX512=ON -DHAMMING_BUILD_PYTHON=ON
+      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF -DHAMMING_BUILD_BENCHMARKS=OFF -DHAMMING_WITH_SSE2=ON -DHAMMING_WITH_AVX2=ON -DHAMMING_WITH_AVX512=ON -DHAMMING_BUILD_PYTHON=ON
 
     - name: build
       shell: bash
