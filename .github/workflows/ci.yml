@@ -58,19 +58,6 @@ jobs:
       with:
         submodules: 'recursive'
 
-    - name: make build directory
-      run: cmake -E make_directory ${{runner.workspace}}/build
-
-    - name: configure cmake
-      shell: bash
-      working-directory: ${{runner.workspace}}/build
-      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF -DHAMMING_BUILD_BENCHMARKS=OFF -DHAMMING_WITH_SSE2=ON -DHAMMING_WITH_AVX2=ON -DHAMMING_WITH_AVX512=ON -DHAMMING_BUILD_PYTHON=ON
-
-    - name: build
-      shell: bash
-      working-directory: ${{runner.workspace}}/build
-      run: cmake --build .
-
     - uses: actions/setup-python@v2
       name: Install Python
       with:
@@ -86,6 +73,8 @@ jobs:
         choco install vcpython27 -f -y
 
     - name: Build wheels
+      env:
+        CIBW_BEFORE_ALL: python -m pip install cmake
       run: |
         python -m cibuildwheel --output-dir wheelhouse
 
