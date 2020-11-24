@@ -48,6 +48,8 @@ jobs:
     needs: [build-and-test]
     name: Build wheels on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
+    # Build wheels on every tag starting with 'v' (saves some build time)
+    if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags/v')
 
     strategy:
       matrix:
