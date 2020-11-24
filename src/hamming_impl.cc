@@ -50,7 +50,6 @@ std::vector<int> distances(const std::vector<std::string>& data){
   }
   double frac_diff{static_cast<double>(n_diff) / static_cast<double>(data.size()*data[0].size())};
   if(frac_diff < sparse_threshold){
-      std::cout << "!! " << frac_diff << std::endl;
     #ifdef HAMMING_WITH_OPENMP
       #pragma omp parallel for
     #endif
