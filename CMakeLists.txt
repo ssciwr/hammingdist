@@ -2,6 +2,8 @@ project(covid-tda LANGUAGES CXX)
 
 cmake_minimum_required(VERSION 3.11)
 
+include(CTest)
+
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(CMAKE_CXX_STANDARD 11)
 
@@ -32,8 +34,6 @@ set(HAMMING_WITH_AVX512
 
 # Add git submodules
 add_subdirectory(ext)
-
-include(CTest)
 
 # Build the hamming library
 add_subdirectory(src)

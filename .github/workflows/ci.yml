@@ -12,8 +12,8 @@ env:
   AVX512: OFF
 
 jobs:
-  build:
-
+  build-and-test:
+    name: Testing on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
 
     strategy:
@@ -43,3 +43,60 @@ jobs:
       shell: bash
       working-directory: ${{runner.workspace}}/build
       run: ctest
+
+  build-wheels:
+    needs: [build-and-test]
+    name: Build wheels on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    # Build wheels on every tag starting with 'v' (saves some build time)
+    if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags/v')
+
+    strategy:
+      matrix:
+        os: [ubuntu-18.04, macos-10.15, windows-2019]
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: 'recursive'
+
+    - uses: actions/setup-python@v2
+      name: Install Python
+      with:
+        python-version: '3.7'
+
+    - name: Install cibuildwheel
+      run: |
+        python -m pip install cibuildwheel==1.6.4
+
+    - name: Install Visual C++ for Python 2.7
+      if: runner.os == 'Windows'
+      run: |
+        choco install vcpython27 -f -y
+
+    - name: Build wheels
+      env:
+        CIBW_BEFORE_BUILD: python -m pip install cmake
+        CIBW_SKIP: "*-win32"
+      run: |
+        python -m cibuildwheel --output-dir wheelhouse
+
+    - uses: actions/upload-artifact@v2
+      with:
+        path: ./wheelhouse/*.whl
+
+  upload_pypi:
+    needs: [build-wheels]
+    runs-on: ubuntu-latest
+    # upload to PyPI on every tag starting with 'v'
+    if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags/v')
+    steps:
+      - uses: actions/download-artifact@v2
+        with:
+          name: artifact
+          path: dist
+
+      - uses: pypa/gh-action-pypi-publish@master
+        with:
+          user: __token__
+          password: ${{ secrets.PYPI_API_TOKEN }}
