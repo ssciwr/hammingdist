@@ -108,9 +108,7 @@ to the cmake command.
 
 # Deploying the Python interface
 
-In order to do this, `docker` needs to be installed and the permissions for `docker`
-must be given. Then, the deployment process should be automated like this:
-
-```
-./bin/deploy.sh
-```
+The Python packages are currently built using Github Actions with the project
+`ciwheelbuild`. A wheel build and deploy can be triggered by creating a release
+in Github. Of course, Github Actions should be enabled and the PyPI API access
+token needs to be stored a secret on the project.
