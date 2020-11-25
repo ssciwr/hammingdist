@@ -9,8 +9,6 @@ jobs:
   build-wheels:
     name: Build wheels on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
-    # Build wheels only when Github releases are created
-    if: github.event_name == 'release' && github.event.action == 'published'
 
     strategy:
       matrix:
@@ -49,8 +47,6 @@ jobs:
   upload_pypi:
     needs: [build-wheels]
     runs-on: ubuntu-latest
-    # upload to PyPI only when Github releases are created
-    if: github.event_name == 'release' && github.event.action == 'published'
     steps:
       - uses: actions/download-artifact@v2
         with:
