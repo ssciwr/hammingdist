@@ -19,7 +19,21 @@ DataSet::DataSet(const std::vector<std::string>& data_)
 
 DataSet::DataSet(const std::string& filename)
 {
-  std::cout << "Not yet implemented" << std::endl;
+  std::ifstream stream(filename);
+  std::string line;
+  nsamples = 0;
+
+  while(std::getline(stream, line))
+  {
+    std::istringstream s(line);
+    std::string d;
+    for(std::size_t j=0; j<nsamples; ++j)
+    {
+      std::getline(s, d, ',');
+      result.push_back(std::stoi(d));
+    }
+    ++nsamples;
+  }
 }
 
 void DataSet::dump(const std::string& filename)

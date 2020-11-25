@@ -161,3 +161,24 @@ TEST_CASE("invalid input data: inconsistent sequence lengths", "[invalid]") {
         REQUIRE_THROWS_WITH(from_stringlist(v), msg);
     }
 }
+
+TEST_CASE("from_csv reproduces correct data", "[hamming]") {
+    std::mt19937 gen(12345);
+    std::vector<std::string> data(10);
+    for(auto& d : data)
+        d = make_test_string(1000, gen);
+
+    DataSet ref(data);
+    char tmp_file_name[L_tmpnam];
+    REQUIRE(std::tmpnam(tmp_file_name) != nullptr);
+    ref.dump(std::string(tmp_file_name));
+
+    auto restore = from_csv(std::string(tmp_file_name));
+    REQUIRE(ref.nsamples == restore.nsamples);
+    for(std::size_t i=0; i<ref.nsamples; ++i) {
+        for(std::size_t j=0; j<ref.nsamples; ++j) {
+            REQUIRE(ref[{i, j}] == restore[{i, j}]);
+        }
+    }
+    std::remove(tmp_file_name);
+}
