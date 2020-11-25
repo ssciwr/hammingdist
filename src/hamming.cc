@@ -2,6 +2,7 @@
 #include"hamming_impl.hh"
 
 #include<array>
+#include<algorithm>
 #include<fstream>
 #include<iostream>
 #include<sstream>
@@ -19,20 +20,27 @@ DataSet::DataSet(const std::vector<std::string>& data_)
 
 DataSet::DataSet(const std::string& filename)
 {
+  // Determine correct dataset size
   std::ifstream stream(filename);
   std::string line;
-  nsamples = 0;
+  nsamples = std::count(std::istreambuf_iterator<char>(stream),
+                        std::istreambuf_iterator<char>(), '\n');
+  result.resize(nsamples * (nsamples + 1) / 2);
 
+  // Read the data
+  stream = std::ifstream(filename);
+  std::size_t i{0};
+  std::size_t current{0};
   while(std::getline(stream, line))
   {
     std::istringstream s(line);
     std::string d;
-    for(std::size_t j=0; j<nsamples; ++j)
+    for(std::size_t j=0; j<current; ++j)
     {
       std::getline(s, d, ',');
-      result.push_back(std::stoi(d));
+      result[i++] = std::stoi(d);
     }
-    ++nsamples;
+    ++current;
   }
 }
 
