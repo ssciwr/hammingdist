@@ -1,5 +1,7 @@
 A small C++ tool to calculate pairwise distances between gene sequences given in fasta format.
 
+[![DOI](https://zenodo.org/badge/308676358.svg)](https://zenodo.org/badge/latestdoi/308676358)
+
 # Python interface
 
 To use the Python interface, you should install it from PyPI:
