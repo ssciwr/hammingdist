@@ -37,8 +37,8 @@ std::array<GeneBlock, 256> lookupTable()
   return lookup;
 }
 
-std::vector<int> distances(std::vector<std::string>& data, bool clear_input_data){
-  std::vector<int> result((data.size() - 1) * data.size()/2, 0);
+std::vector<uint16_t> distances(std::vector<std::string>& data, bool clear_input_data){
+  std::vector<uint16_t> result((data.size() - 1) * data.size()/2, 0);
   auto sparse = to_sparse_data(data);
   std::size_t nsamples{data.size()};
   std::size_t sample_length{data[0].size()};
@@ -60,7 +60,7 @@ std::vector<int> distances(std::vector<std::string>& data, bool clear_input_data
       for(std::size_t i=0; i<nsamples; ++i){
         std::size_t offset{i * (i - 1) / 2};
         for(std::size_t j=0; j<i; ++j)
-          result[offset + j] = distance_sparse(sparse[i], sparse[j]);
+          result[offset + j] = static_cast<uint16_t>(distance_sparse(sparse[i], sparse[j]));
       }
       return result;
   }
@@ -93,7 +93,7 @@ std::vector<int> distances(std::vector<std::string>& data, bool clear_input_data
   for(std::size_t i=0; i<nsamples; ++i){
     std::size_t offset{i * (i - 1) / 2};
     for(std::size_t j=0; j<i; ++j)
-      result[offset + j] = distance_func(dense[i], dense[j]);
+      result[offset + j] = static_cast<uint16_t>(distance_func(dense[i], dense[j]));
   }
   return result;
 }

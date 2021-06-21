@@ -16,7 +16,7 @@ struct DataSet
   int operator[](const std::array<std::size_t, 2>&) const;
 
   std::size_t nsamples;
-  std::vector<int> result;
+  std::vector<uint16_t> result;
 };
 
 DataSet from_stringlist(std::vector<std::string>&);
