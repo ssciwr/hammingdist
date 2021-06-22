@@ -193,3 +193,28 @@ TEST_CASE("throws on distance integer overflow", "[hamming]") {
     std::string msg{"Error: Distance is too large for chosen integer type"};
     REQUIRE_THROWS_WITH(DataSet(data), msg);
 }
+
+TEST_CASE("from_lower_triangular reproduces correct data", "[hamming][Q]") {
+    std::mt19937 gen(12345);
+    char tmp_file_name[L_tmpnam];
+    REQUIRE(std::tmpnam(tmp_file_name) != nullptr);
+    for (auto n : {1, 2, 3, 5, 9, 10, 19, 100, 207}) {
+      CAPTURE(n);
+      std::vector<std::string> data(n);
+      for(auto& d : data)
+          d = make_test_string(24, gen);
+
+      DataSet ref(data);
+      REQUIRE(ref.nsamples == n);
+      ref.dump_lower_triangular(std::string(tmp_file_name));
+
+      auto restore = from_lower_triangular(std::string(tmp_file_name));
+      REQUIRE(ref.nsamples == restore.nsamples);
+      for(std::size_t i=0; i<ref.nsamples; ++i) {
+          for(std::size_t j=0; j<ref.nsamples; ++j) {
+              REQUIRE(ref[{i, j}] == restore[{i, j}]);
+          }
+      }
+    }
+    std::remove(tmp_file_name);
+}
