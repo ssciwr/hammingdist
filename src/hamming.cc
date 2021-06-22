@@ -5,6 +5,7 @@
 #include<algorithm>
 #include<fstream>
 #include<iostream>
+#include<limits>
 #include<sstream>
 #include<string>
 #include<vector>
@@ -84,6 +85,10 @@ DataSet from_fasta(const std::string& filename, std::size_t n)
 {
   std::vector<std::string> data;
   data.reserve(n);
+  if (n == 0) {
+    n = std::numeric_limits<std::size_t>::max();
+    data.reserve(65536);
+  }
   // Initializing the stream
   std::ifstream stream(filename);
   std::size_t count = 0;

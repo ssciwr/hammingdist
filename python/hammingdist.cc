@@ -18,7 +18,7 @@ PYBIND11_MODULE(hammingdist,m)
 
   m.def("from_stringlist", &from_stringlist, "Creates a dataset from a list of strings");
   m.def("from_csv", &from_csv, "Creates a dataset by reading already computed distances from csv (full matrix expected)");
-  m.def("from_fasta", &from_fasta, "Creates a dataset by reading from a fasta file (assuming all sequences have equal length)");
+  m.def("from_fasta", &from_fasta, py::arg("filename"), py::arg("n") = 0, "Creates a dataset by reading from a fasta file (assuming all sequences have equal length)");
 }
 
 }
