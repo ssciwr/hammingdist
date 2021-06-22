@@ -4,9 +4,11 @@
 #include <cstdint>
 #include <vector>
 
+#include "hamming_impl_types.hh"
+
 namespace hamming {
 
-int distance_avx512(const std::vector<std::uint8_t>& a, const std::vector<std::uint8_t>& b);
+int distance_avx512(const std::vector<GeneBlock>& a, const std::vector<GeneBlock>& b);
 
 }
 

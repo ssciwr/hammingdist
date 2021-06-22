@@ -167,7 +167,7 @@ TEST_CASE("from_csv reproduces correct data", "[hamming]") {
     std::mt19937 gen(12345);
     std::vector<std::string> data(10);
     for(auto& d : data)
-        d = make_test_string(1000, gen);
+        d = make_test_string(201, gen);
 
     DataSet ref(data);
     char tmp_file_name[L_tmpnam];
@@ -182,4 +182,14 @@ TEST_CASE("from_csv reproduces correct data", "[hamming]") {
         }
     }
     std::remove(tmp_file_name);
+}
+
+TEST_CASE("throws on distance integer overflow", "[hamming]") {
+    auto n = std::numeric_limits<DistIntType>::max() + 1;
+    std::mt19937 gen(12345);
+    std::vector<std::string> data(2);
+    data[0] = std::string(n, 'A');
+    data[1] = std::string(n, 'T');
+    std::string msg{"Error: Distance is too large for chosen integer type"};
+    REQUIRE_THROWS_WITH(DataSet(data), msg);
 }
