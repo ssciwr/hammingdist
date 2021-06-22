@@ -1,9 +1,6 @@
 name: Build Wheels + PyPI deploy
 
-on:
-  release:
-    types:
-      - published
+on: [push, pull_request]
 
 jobs:
   build-wheels:
@@ -19,26 +16,10 @@ jobs:
       with:
         submodules: 'recursive'
 
-    - uses: actions/setup-python@v2
-      name: Install Python
-      with:
-        python-version: '3.7'
-
-    - name: Install cibuildwheel
-      run: |
-        python -m pip install cibuildwheel==1.6.4
-
-    - name: Install Visual C++ for Python 2.7
-      if: runner.os == 'Windows'
-      run: |
-        choco install vcpython27 -f -y
-
-    - name: Build wheels
+    - uses: pypa/cibuildwheel@v1.11.1.post1
       env:
         CIBW_BEFORE_BUILD: python -m pip install cmake
         CIBW_SKIP: "*-win32"
-      run: |
-        python -m cibuildwheel --output-dir wheelhouse
 
     - uses: actions/upload-artifact@v2
       with:
@@ -47,13 +28,14 @@ jobs:
   upload_pypi:
     needs: [build-wheels]
     runs-on: ubuntu-latest
+    if: github.event_name == 'release' && github.event.action == 'published'
     steps:
       - uses: actions/download-artifact@v2
         with:
           name: artifact
           path: dist
 
-      - uses: pypa/gh-action-pypi-publish@master
+      - uses: pypa/gh-action-pypi-publish@release/v1
         with:
           user: __token__
           password: ${{ secrets.PYPI_API_TOKEN }}
