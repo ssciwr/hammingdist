@@ -9,7 +9,8 @@ static constexpr std::array<char, 4> valid_chars{'A', 'C', 'G', 'T'};
 static constexpr std::array<char, 6> invalid_chars{' ', 'N', '*', '?', 'a', '.'};
 
 static int dist(char c1, char c2) {
-  return from_stringlist({std::string{c1}, std::string{c2}})[{0, 1}];
+  std::vector<std::string> v{std::string{c1}, std::string{c2}};
+  return from_stringlist(v)[{0, 1}];
 }
 
 TEST_CASE("distance between two equal valid characters is 0", "[distance]") {
@@ -86,7 +87,7 @@ TEST_CASE("two expressions with distance 2", "[hamming]") {
   expr.push_back({{"ACGTGTCGTGTCGACGTGTCG----------A"}, {"ACGTGTCGTTTCGACGAGTCGGGG-------A"}});
   expr.push_back({{"ACGTGTCGTGTCGACGTGTCG----------AG"}, {"ACGTGTCGTTTCGACGAGTCGGGG-------AG"}});
   expr.push_back({{"ACGTGTCGTGTCGACGTGTCG---ACGTGTCGTGTCGACGTGTCG---ACGTGTCGTGTCGACGTGTCG---"}, {"ACGTGTCGTTTCGACGAGTCGGGGACGTGTCGTGTCGACGTGTCG---ACGTGTCGTGTCGACGTGTCG---"}});
-  for (const auto &v : expr) {
+  for (auto &v : expr) {
     auto d = from_stringlist(v);
     REQUIRE(d[{0, 0}] == 0);
     REQUIRE(d[{0, 1}] == 2);
@@ -144,7 +145,7 @@ TEST_CASE("invalid input data: empty sequence", "[invalid]") {
     expr.push_back({});
     expr.push_back({{""}, {""}});
     std::string msg{"Error: Empty sequence"};
-    for (const auto &v : expr) {
+    for (auto &v : expr) {
         REQUIRE_THROWS_WITH(from_stringlist(v), msg);
     }
 }
@@ -157,7 +158,7 @@ TEST_CASE("invalid input data: inconsistent sequence lengths", "[invalid]") {
     expr.push_back({{"ACGT"}, {"A-----"}});
     expr.push_back({{"ACGT"}, {""}});
     std::string msg{"Error: Sequences do not all have the same length"};
-    for (const auto &v : expr) {
+    for (auto &v : expr) {
         REQUIRE_THROWS_WITH(from_stringlist(v), msg);
     }
 }

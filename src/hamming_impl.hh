@@ -17,7 +17,7 @@ constexpr GeneBlock mask_gene1{0xf0};
 
 std::array<GeneBlock, 256> lookupTable();
 
-std::vector<int> distances(const std::vector<std::string>& data);
+std::vector<int> distances(std::vector<std::string>& data, bool clear_input_data);
 
 int distance_sparse(const SparseData& a, const SparseData& b);
 

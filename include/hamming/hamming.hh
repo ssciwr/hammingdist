@@ -10,7 +10,7 @@ namespace hamming {
 
 struct DataSet
 {
-  DataSet(const std::vector<std::string>&);
+  DataSet(std::vector<std::string>&, bool clear_input_data = false);
   DataSet(const std::string&);
   void dump(const std::string&);
   int operator[](const std::array<std::size_t, 2>&) const;
@@ -19,7 +19,7 @@ struct DataSet
   std::vector<int> result;
 };
 
-DataSet from_stringlist(const std::vector<std::string>&);
+DataSet from_stringlist(std::vector<std::string>&);
 DataSet from_csv(const std::string&);
 DataSet from_fasta(const std::string&, std::size_t);
 

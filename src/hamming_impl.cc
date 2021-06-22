@@ -37,10 +37,11 @@ std::array<GeneBlock, 256> lookupTable()
   return lookup;
 }
 
-std::vector<int> distances(const std::vector<std::string>& data){
+std::vector<int> distances(std::vector<std::string>& data, bool clear_input_data){
   std::vector<int> result((data.size() - 1) * data.size()/2, 0);
   auto sparse = to_sparse_data(data);
   std::size_t nsamples{data.size()};
+  std::size_t sample_length{data[0].size()};
 
   // if < 0.5% of values differ from reference genome, use sparse distance function
   constexpr double sparse_threshold{0.005};
@@ -48,8 +49,11 @@ std::vector<int> distances(const std::vector<std::string>& data){
   for(const auto& s : sparse){
       n_diff += s.size()/2;
   }
-  double frac_diff{static_cast<double>(n_diff) / static_cast<double>(data.size()*data[0].size())};
+  double frac_diff{static_cast<double>(n_diff) / static_cast<double>(nsamples*sample_length)};
   if(frac_diff < sparse_threshold){
+    if(clear_input_data){
+        data.clear();
+    }
     #ifdef HAMMING_WITH_OPENMP
       #pragma omp parallel for
     #endif
@@ -63,6 +67,9 @@ std::vector<int> distances(const std::vector<std::string>& data){
 
   // otherwise use fastest supported dense distance function
   auto dense = to_dense_data(data);
+  if(clear_input_data){
+    data.clear();
+  }
   const auto features = cpu_features::GetX86Info().features;
   int (*distance_func)(const std::vector<GeneBlock>& a, const std::vector<GeneBlock>& b) = distance_cpp;
 #ifdef HAMMING_WITH_AVX512

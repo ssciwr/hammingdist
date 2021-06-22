@@ -11,11 +11,11 @@
 
 namespace hamming {
 
-DataSet::DataSet(const std::vector<std::string>& data_)
+DataSet::DataSet(std::vector<std::string>& data_, bool clear_input_data)
   : nsamples(data_.size())
 {
   validate_data(data_);
-  result = distances(data_);
+  result = distances(data_, clear_input_data);
 }
 
 DataSet::DataSet(const std::string& filename)
@@ -71,7 +71,7 @@ int DataSet::operator[](const std::array<std::size_t, 2>& index) const
   return 0;
 }
 
-DataSet from_stringlist(const std::vector<std::string> &data) {
+DataSet from_stringlist(std::vector<std::string> &data) {
   return DataSet(data);
 }
 
@@ -100,7 +100,7 @@ DataSet from_fasta(const std::string& filename, std::size_t n)
     }
     ++count;
   }
-  return DataSet(data);
+  return DataSet(data, true);
 }
 
 }
