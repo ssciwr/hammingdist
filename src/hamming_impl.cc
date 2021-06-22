@@ -37,8 +37,15 @@ std::array<GeneBlock, 256> lookupTable()
   return lookup;
 }
 
-std::vector<int> distances(std::vector<std::string>& data, bool clear_input_data){
-  std::vector<int> result((data.size() - 1) * data.size()/2, 0);
+static DistIntType safe_int_cast(int x){
+    if(x > std::numeric_limits<DistIntType>::max()){
+        throw std::runtime_error("Error: Distance is too large for chosen integer type");
+    }
+    return static_cast<DistIntType>(x);
+}
+
+std::vector<DistIntType> distances(std::vector<std::string>& data, bool clear_input_data){
+  std::vector<DistIntType> result((data.size() - 1) * data.size()/2, 0);
   auto sparse = to_sparse_data(data);
   std::size_t nsamples{data.size()};
   std::size_t sample_length{data[0].size()};
@@ -59,8 +66,9 @@ std::vector<int> distances(std::vector<std::string>& data, bool clear_input_data
     #endif
       for(std::size_t i=0; i<nsamples; ++i){
         std::size_t offset{i * (i - 1) / 2};
-        for(std::size_t j=0; j<i; ++j)
-          result[offset + j] = distance_sparse(sparse[i], sparse[j]);
+        for(std::size_t j=0; j<i; ++j){
+          result[offset + j] = safe_int_cast(distance_sparse(sparse[i], sparse[j]));
+        }
       }
       return result;
   }
@@ -93,7 +101,7 @@ std::vector<int> distances(std::vector<std::string>& data, bool clear_input_data
   for(std::size_t i=0; i<nsamples; ++i){
     std::size_t offset{i * (i - 1) / 2};
     for(std::size_t j=0; j<i; ++j)
-      result[offset + j] = distance_func(dense[i], dense[j]);
+      result[offset + j] = safe_int_cast(distance_func(dense[i], dense[j]));
   }
   return result;
 }

@@ -6,18 +6,14 @@
 #include<string>
 #include<vector>
 
-namespace hamming {
+#include"hamming/hamming_types.hh"
+#include"hamming_impl_types.hh"
 
-// 4-bit representation of gene:
-using GeneBlock = std::uint_fast8_t;
-using SparseData = std::vector<std::size_t>;
-constexpr std::size_t n_bits_per_gene{4};
-constexpr GeneBlock mask_gene0{0x0f};
-constexpr GeneBlock mask_gene1{0xf0};
+namespace hamming {
 
 std::array<GeneBlock, 256> lookupTable();
 
-std::vector<int> distances(std::vector<std::string>& data, bool clear_input_data);
+std::vector<DistIntType> distances(std::vector<std::string>& data, bool clear_input_data);
 
 int distance_sparse(const SparseData& a, const SparseData& b);
 
