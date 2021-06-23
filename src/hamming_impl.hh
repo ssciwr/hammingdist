@@ -13,6 +13,8 @@ namespace hamming {
 
 std::array<GeneBlock, 256> lookupTable();
 
+DistIntType safe_int_cast(int x);
+
 std::vector<DistIntType> distances(std::vector<std::string>& data, bool clear_input_data);
 
 int distance_sparse(const SparseData& a, const SparseData& b);

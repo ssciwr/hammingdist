@@ -3,6 +3,7 @@
 
 #include<array>
 #include<algorithm>
+#include<cmath>
 #include<fstream>
 #include<iostream>
 #include<limits>
@@ -45,6 +46,16 @@ DataSet::DataSet(const std::string& filename)
   }
 }
 
+static std::size_t uint_sqrt(std::size_t x){
+  return static_cast<std::size_t>(std::round(std::sqrt(x)));
+}
+
+DataSet::DataSet(std::vector<DistIntType>&& distances) : result{std::move(distances)}
+{
+  // infer n from number of lower triangular matrix elements = n(n-1)/2
+  nsamples = (uint_sqrt(8*result.size()+1)+1)/2;
+}
+
 void DataSet::dump(const std::string& filename)
 {
   std::ofstream stream(filename);
@@ -57,6 +68,20 @@ void DataSet::dump(const std::string& filename)
         stream << ", ";
     }
     stream << std::endl;
+  }
+}
+
+void DataSet::dump_lower_triangular(const std::string& filename)
+{
+  std::ofstream stream(filename);
+  std::size_t k = 0;
+  for(std::size_t i=1; i<nsamples; ++i)
+  {
+    for(std::size_t j=0; j+1<i; ++j)
+    {
+      stream << static_cast<int>(result[k++]) << ",";
+    }
+    stream << static_cast<int>(result[k++]) << "\n";
   }
 }
 
@@ -79,6 +104,24 @@ DataSet from_stringlist(std::vector<std::string> &data) {
 DataSet from_csv(const std::string& filename)
 {
   return DataSet(filename);
+}
+
+DataSet from_lower_triangular(const std::string& filename)
+{
+  std::vector<DistIntType> distances;
+  std::ifstream stream(filename);
+  std::string line;
+  while(std::getline(stream, line))
+  {
+    std::istringstream s(line);
+    std::string d;
+    while(s.good())
+    {
+      std::getline(s, d, ',');
+      distances.push_back(safe_int_cast(std::stoi(d)));
+    }
+  }
+  return DataSet(std::move(distances));
 }
 
 DataSet from_fasta(const std::string& filename, std::size_t n)

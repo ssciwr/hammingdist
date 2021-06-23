@@ -10,6 +10,7 @@ namespace hamming {
 DataSet from_stringlist(std::vector<std::string>&);
 DataSet from_csv(const std::string&);
 DataSet from_fasta(const std::string&, std::size_t n = 0);
+DataSet from_lower_triangular(const std::string&);
 
 }
 
