@@ -13,7 +13,7 @@ PYBIND11_MODULE(hammingdist,m)
 
   py::class_<DataSet>(m, "DataSet")
       .def("dump", &DataSet::dump, "Dump distances matrix in csv format")
-      .def("dump_lower_triangular", &DataSet::dump_lower_triangular, "Dump distances matrix in lower triangular format")
+      .def("dump_lower_triangular", &DataSet::dump_lower_triangular, "Dump distances matrix in lower triangular format (comma-delimited, row-major)")
       .def("__getitem__", &DataSet::operator[])
       .def_readonly("_distances", &DataSet::result);
 

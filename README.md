@@ -22,9 +22,13 @@ data = hammingdist.from_fasta("example.fasta", 100)
 # The distance data can be accessed point-wise, though looping over all distances might be quite inefficient
 print(data[14,42])
 
-# The data can be written to disk and retrieved:
+# The data can be written to disk in csv format (default `distance` Ripser format) and retrieved:
 data.dump("backup.csv")
 retrieval = hammingdist.from_csv("backup.csv")
+
+# It can also be written in lower triangular format (comma-delimited row-major, `lower-distance` Ripser format):
+data.dump_lower_triangular("lt.txt")
+retrieval = hammingdist.from_lower_triangular("lt.txt")
 
 # Finally, we can pass the data as a list of strings in Python:
 data = hammingdist.from_stringlist(["ACGTACGT", "ACGTAGGT", "ATTTACGT"])
