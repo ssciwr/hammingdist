@@ -1,6 +1,6 @@
 name: Build Wheels + PyPI deploy
 
-on: [push, pull_request]
+on: [push, pull_request, release]
 
 jobs:
   build-wheels:
