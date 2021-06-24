@@ -3,6 +3,7 @@
 
 #include<array>
 #include<algorithm>
+#include<unordered_map>
 #include<cmath>
 #include<fstream>
 #include<iostream>
@@ -13,11 +14,11 @@
 
 namespace hamming {
 
-DataSet::DataSet(std::vector<std::string>& data_, bool clear_input_data)
-  : nsamples(data_.size())
+DataSet::DataSet(std::vector<std::string>& data, bool clear_input_data, std::vector<std::size_t>&& indices)
+  : nsamples(data.size()), sequence_indices(std::move(indices))
 {
-  validate_data(data_);
-  result = distances(data_, clear_input_data);
+  validate_data(data);
+  result = distances(data, clear_input_data);
 }
 
 DataSet::DataSet(const std::string& filename)
@@ -85,6 +86,19 @@ void DataSet::dump_lower_triangular(const std::string& filename)
   }
 }
 
+void DataSet::dump_sequence_indices(const std::string& filename){
+  std::ofstream stream(filename);
+  if(sequence_indices.empty()){
+    for(std::size_t i=0; i<nsamples; ++i){
+      stream << i << "\n";
+    }
+    return;
+  }
+  for(auto sequence_index : sequence_indices){
+      stream << sequence_index << "\n";
+  }
+}
+
 int DataSet::operator[](const std::array<std::size_t, 2>& index) const
 {
   auto i = index[0];
@@ -124,7 +138,7 @@ DataSet from_lower_triangular(const std::string& filename)
   return DataSet(std::move(distances));
 }
 
-DataSet from_fasta(const std::string& filename, std::size_t n)
+DataSet from_fasta(const std::string& filename, bool remove_duplicates, std::size_t n)
 {
   std::vector<std::string> data;
   data.reserve(n);
@@ -132,23 +146,41 @@ DataSet from_fasta(const std::string& filename, std::size_t n)
     n = std::numeric_limits<std::size_t>::max();
     data.reserve(65536);
   }
+  std::unordered_map<std::string, std::size_t> map_seq_to_index;
+  std::vector<std::size_t> sequence_indices{};
   // Initializing the stream
   std::ifstream stream(filename);
   std::size_t count = 0;
+  std::size_t count_unique = 0;
   std::string line;
   // skip first header
   std::getline(stream, line);
   while(count < n && !stream.eof())
   {
-    data.emplace_back();
-    auto& seq = data.back();
+    std::string seq{};
     while(std::getline(stream, line) && line[0] != '>')
     {
       seq.append(line);
     }
+    if(remove_duplicates){
+      auto result = map_seq_to_index.emplace(std::move(seq), count_unique);
+      if(result.second){
+        ++count_unique;
+      }
+      sequence_indices.push_back(result.first->second);
+    } else {
+      data.push_back(std::move(seq));
+    }
     ++count;
   }
-  return DataSet(data, true);
+  if(remove_duplicates){
+    // copy each unique sequence to the vector of strings
+    data.resize(count_unique);
+    for(auto &key_value_pair : map_seq_to_index){
+      data[key_value_pair.second] = key_value_pair.first;
+    }
+  }
+  return DataSet(data, true, std::move(sequence_indices));
 }
 
 }

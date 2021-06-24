@@ -15,9 +15,14 @@ Then, you can e.g. use it in the following way from Python:
 ```
 import hammingdist
 
-# This accepts exactly the same two arguments as the stand-alone
-# executable: A fasta file and the maximum number of sequences to consider
-data = hammingdist.from_fasta("example.fasta", 100)
+# To import all sequences from a fasta file
+data = hammingdist.from_fasta("example.fasta")
+
+# To import only the first 100 sequences from a fasta file
+data = hammingdist.from_fasta("example.fasta", n=100)
+
+# To import all sequences and remove any duplicates
+data = hammingdist.from_fasta("example.fasta", remove_duplicates=True)
 
 # The distance data can be accessed point-wise, though looping over all distances might be quite inefficient
 print(data[14,42])
@@ -29,6 +34,10 @@ retrieval = hammingdist.from_csv("backup.csv")
 # It can also be written in lower triangular format (comma-delimited row-major, `lower-distance` Ripser format):
 data.dump_lower_triangular("lt.txt")
 retrieval = hammingdist.from_lower_triangular("lt.txt")
+
+# If the `remove_duplicates` option was used, the sequence indices can also be written.
+# For each input sequence, this prints the corresponding index in the output:
+data.dump_sequence_indices("indices.txt")
 
 # Finally, we can pass the data as a list of strings in Python:
 data = hammingdist.from_stringlist(["ACGTACGT", "ACGTAGGT", "ATTTACGT"])

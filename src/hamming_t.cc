@@ -106,12 +106,50 @@ TEST_CASE("from_fasta single line sequences", "[hamming]") {
     of << ">seq1\n";
     of << "ACGTGTCGTTTCGACGAGTCG\n";
     of.close();
-    for(int n : {0, 2, 3, 8}){
-        auto d = from_fasta(tmp_file_name, n);
+    for(bool remove_duplicates : {false, true}){
+      for(int n : {0, 2, 3, 8}){
+          auto d = from_fasta(tmp_file_name, remove_duplicates, n);
+          REQUIRE(d[{0, 0}] == 0);
+          REQUIRE(d[{0, 1}] == 2);
+          REQUIRE(d[{1, 0}] == 2);
+          REQUIRE(d[{1, 1}] == 0);
+      }
+    }
+    std::remove(tmp_file_name);
+}
+
+TEST_CASE("from_fasta single line sequences with duplicates", "[hamming]") {
+    char tmp_file_name[L_tmpnam];
+    REQUIRE(std::tmpnam(tmp_file_name) != nullptr);
+    CAPTURE(tmp_file_name);
+    std::ofstream of(tmp_file_name);
+    of << ">seq0\n";
+    of << "ACGTGTCGTGTCGACGTGTCG\n";
+    of << ">seq1\n";
+    of << "ACGTGTCGTTTCGACGAGTCG\n";
+    of << ">seq2\n";
+    of << "ACGTGTCGTTTCGACGAGTCG\n";
+    of << ">seq3\n";
+    of << "ACGTGTCGTTTCGACGAGTCG\n";
+    of << ">seq4\n";
+    of << "ACGTGTCGTGTCGACGTGTCG\n";
+    of << ">seq5\n";
+    of << "ACGTGTCGTATCGACGTGTCG\n";
+    of.close();
+    std::vector<std::size_t> sequence_indices{0, 1, 1, 1, 0, 2};
+    for(int n : {0, 6, 22}){
+        auto d = from_fasta(tmp_file_name, true, n);
+        REQUIRE(d.nsamples == 3);
+        REQUIRE(d.sequence_indices == sequence_indices);
         REQUIRE(d[{0, 0}] == 0);
         REQUIRE(d[{0, 1}] == 2);
+        REQUIRE(d[{0, 2}] == 1);
         REQUIRE(d[{1, 0}] == 2);
         REQUIRE(d[{1, 1}] == 0);
+        REQUIRE(d[{1, 2}] == 2);
+        REQUIRE(d[{2, 0}] == 1);
+        REQUIRE(d[{2, 1}] == 2);
+        REQUIRE(d[{2, 2}] == 0);
     }
     std::remove(tmp_file_name);
 }
@@ -130,12 +168,14 @@ TEST_CASE("from_fasta multi-line sequences", "[hamming]") {
     of << "ACGTGTCGTGTCGACGTGTCG\n";
     of << "ACGTGTCGTGTCG\n";
     of.close();
-    for(int n : {0, 2, 3, 8}){
-        auto d = from_fasta(tmp_file_name, 2);
-        REQUIRE(d[{0, 0}] == 0);
-        REQUIRE(d[{0, 1}] == 2);
-        REQUIRE(d[{1, 0}] == 2);
-        REQUIRE(d[{1, 1}] == 0);
+    for(bool remove_duplicates : {false, true}){
+      for(int n : {0, 2, 3, 8}){
+          auto d = from_fasta(tmp_file_name, remove_duplicates, 2);
+          REQUIRE(d[{0, 0}] == 0);
+          REQUIRE(d[{0, 1}] == 2);
+          REQUIRE(d[{1, 0}] == 2);
+          REQUIRE(d[{1, 1}] == 0);
+      }
     }
     std::remove(tmp_file_name);
 }
@@ -194,7 +234,7 @@ TEST_CASE("throws on distance integer overflow", "[hamming]") {
     REQUIRE_THROWS_WITH(DataSet(data), msg);
 }
 
-TEST_CASE("from_lower_triangular reproduces correct data", "[hamming][Q]") {
+TEST_CASE("from_lower_triangular reproduces correct data", "[hamming]") {
     std::mt19937 gen(12345);
     char tmp_file_name[L_tmpnam];
     REQUIRE(std::tmpnam(tmp_file_name) != nullptr);
