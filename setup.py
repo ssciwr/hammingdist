@@ -71,20 +71,34 @@ class CMakeBuild(build_ext):
         subprocess.check_call(['cmake', ext.sourcedir] + cmake_args, cwd=self.build_temp, env=env)
         subprocess.check_call(['cmake', '--build', '.', '--target', 'hammingdist'] + build_args, cwd=self.build_temp)
 
+from os import path
+with open(path.join(path.abspath(path.dirname(__file__)), "README.md")) as f:
+    long_description = f.read()
 
 setup(
     name='hammingdist',
-    version='0.10.0',
+    version='0.11.0',
     author='Dominic Kempf, Liam Keegan',
     author_email='ssc@iwr.uni-heidelberg.de',
     description='A fast tool to calculate Hamming distances',
-    long_description='',
+    url="https://github.com/ssciwr/hammingdist",
+    long_description=long_description,
+    long_description_content_type="text/markdown",
     ext_modules=[CMakeExtension('hammingdist')],
     cmdclass=dict(build_ext=CMakeBuild),
     zip_safe=False,
     classifiers=[
-        "Programming Language :: Python :: 3",
+        "Operating System :: MacOS :: MacOS X",
+        "Operating System :: Microsoft :: Windows",
+        "Operating System :: POSIX :: Linux",
+        "Programming Language :: C++",
+        "Programming Language :: Python :: 3 :: Only",
+        "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: Implementation :: CPython",
+        "Programming Language :: Python :: Implementation :: PyPy",
         "License :: OSI Approved :: MIT License",
-        "Operating System :: OS Independent",
     ],
 )
