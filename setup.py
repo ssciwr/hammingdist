@@ -49,7 +49,7 @@ class CMakeBuild(build_ext):
                       '-DHAMMING_BUILD_PYTHON=ON',
                       '-DBUILD_TESTING=OFF',
                       '-DHAMMING_BUILD_BENCHMARKS=OFF',
-                      '-DHAMMING_WITH_OPENMP=OFF',
+                      '-DHAMMING_WITH_OPENMP=' + os.environ.get('HAMMING_WITH_OPENMP', 'OFF')
                      ]
 
         cfg = 'Debug' if self.debug else 'Release'
@@ -77,7 +77,7 @@ with open(path.join(path.abspath(path.dirname(__file__)), "README.md")) as f:
 
 setup(
     name='hammingdist',
-    version='0.11.0',
+    version='0.12.0',
     author='Dominic Kempf, Liam Keegan',
     author_email='ssc@iwr.uni-heidelberg.de',
     description='A fast tool to calculate Hamming distances',

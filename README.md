@@ -51,5 +51,10 @@ data.dump_sequence_indices("indices.txt")
 data = hammingdist.from_stringlist(["ACGTACGT", "ACGTAGGT", "ATTTACGT"])
 ```
 
-The Python package is currently built without OpenMP support, but this can
-be changed upon request.
+## OpenMP on linux
+
+The latest version of hammingdist on linux is now built with OpenMP (multithreading) support.
+If this causes any issues, you can install the previous version of hammingdist without OpenMP support:
+```bash
+pip install hammingdist==0.11.0
+```
