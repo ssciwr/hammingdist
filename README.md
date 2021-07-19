@@ -15,6 +15,9 @@ Then, you can e.g. use it in the following way from Python:
 ```
 import hammingdist
 
+# To see the different optional arguments available:
+help(hammingdist.from_fasta)
+
 # To import all sequences from a fasta file
 data = hammingdist.from_fasta("example.fasta")
 
@@ -23,6 +26,9 @@ data = hammingdist.from_fasta("example.fasta", n=100)
 
 # To import all sequences and remove any duplicates
 data = hammingdist.from_fasta("example.fasta", remove_duplicates=True)
+
+# To import all sequences from a fasta file, also treating 'X' as a valid character
+data = hammingdist.from_fasta("example.fasta", include_x=True)
 
 # The distance data can be accessed point-wise, though looping over all distances might be quite inefficient
 print(data[14,42])

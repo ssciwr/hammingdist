@@ -25,7 +25,8 @@ namespace hamming {
 // 0100: 'G'
 // 1000: 'T'
 // 0000: invalid
-std::array<GeneBlock, 256> lookupTable()
+// 0011: 'X' (only if include_x = true)
+std::array<GeneBlock, 256> lookupTable(bool include_x)
 {
   std::array<GeneBlock, 256> lookup{};
   lookup[std::size_t('-')] = 0xff;
@@ -33,6 +34,9 @@ std::array<GeneBlock, 256> lookupTable()
   lookup[std::size_t('C')] = (1 << 1) | (1 << (n_bits_per_gene+1));
   lookup[std::size_t('G')] = (1 << 2) | (1 << (n_bits_per_gene+2));
   lookup[std::size_t('T')] = (1 << 3) | (1 << (n_bits_per_gene+3));
+  if(include_x){
+    lookup[std::size_t('X')] = 1 | (1 << 1) | (1 << n_bits_per_gene) | (1 << (n_bits_per_gene+1));
+  }
 
   return lookup;
 }
@@ -44,20 +48,23 @@ DistIntType safe_int_cast(int x){
     return static_cast<DistIntType>(x);
 }
 
-std::vector<DistIntType> distances(std::vector<std::string>& data, bool clear_input_data){
+std::vector<DistIntType> distances(std::vector<std::string>& data, bool include_x, bool clear_input_data){
   std::vector<DistIntType> result((data.size() - 1) * data.size()/2, 0);
-  auto sparse = to_sparse_data(data);
+  auto sparse = to_sparse_data(data, include_x);
   std::size_t nsamples{data.size()};
   std::size_t sample_length{data[0].size()};
 
-  // if < 0.5% of values differ from reference genome, use sparse distance function
+  // if X is included, we have to use the sparse distance function
+  bool use_sparse = include_x;
+  // if < 0.5% of values differ from reference genome, also use sparse distance function
   constexpr double sparse_threshold{0.005};
   std::size_t n_diff{0};
   for(const auto& s : sparse){
       n_diff += s.size()/2;
   }
   double frac_diff{static_cast<double>(n_diff) / static_cast<double>(nsamples*sample_length)};
-  if(frac_diff < sparse_threshold){
+  use_sparse = frac_diff < sparse_threshold;
+  if(use_sparse){
     if(clear_input_data){
         data.clear();
     }
@@ -122,7 +129,9 @@ int distance_sparse(const SparseData& a, const SparseData& b){
         } else {
             // a and b have the same index: i.e. overlap
             // so add distance contribution from combination
-            r += static_cast<int>((a[ia+1] & b[ib+1]) == 0);
+            bool nodash = (a[ia+1] != 0xff) && (b[ib+1] != 0xff);
+            bool differ = (a[ia+1] != b[ib+1]);
+            r += static_cast<int>(nodash && differ);
             // advance both
             ia += 2;
             ib += 2;
@@ -161,7 +170,7 @@ void validate_data(const std::vector<std::string>& data){
     }
 }
 
-static std::string get_reference_expression(const std::vector<std::string>& data){
+static std::string get_reference_expression(const std::vector<std::string>& data, bool include_x){
     std::string g0;
     std::size_t length{data[0].size()};
     g0.reserve(length);
@@ -170,24 +179,27 @@ static std::string get_reference_expression(const std::vector<std::string>& data
     ctoi[static_cast<std::size_t>('C')] = 2;
     ctoi[static_cast<std::size_t>('G')] = 3;
     ctoi[static_cast<std::size_t>('T')] = 4;
-    std::vector<std::array<std::size_t, 5>> counts(length, std::array<std::size_t, 5>{});
+    if(include_x){
+        ctoi[static_cast<std::size_t>('X')] = 5;
+    }
+    std::vector<std::array<std::size_t, 6>> counts(length, std::array<std::size_t, 6>{});
     for (const auto& g : data){
         for (std::size_t i=0; i<g.size(); ++i){
             ++(counts[i][ctoi[g[i]]]);
         }
     }
-    std::array<char, 5> itoc{'A', 'A', 'C', 'G', 'T'};
+    std::array<char, 6> itoc{'A', 'A', 'C', 'G', 'T', 'X'};
     for(const auto& count : counts){
         g0.push_back(itoc[std::distance(count.cbegin(), std::max_element(count.cbegin()+1, count.cend()))]);
     }
     return g0;
 }
 
-std::vector<SparseData> to_sparse_data(const std::vector<std::string>& data){
+std::vector<SparseData> to_sparse_data(const std::vector<std::string>& data, bool include_x){
     std::vector<SparseData> sparseData;
     sparseData.reserve(data.size());
-    auto lookup = lookupTable();
-    auto seq0 = get_reference_expression(data);
+    auto lookup = lookupTable(include_x);
+    auto seq0 = get_reference_expression(data, include_x);
     std::size_t count{0};
     for(const auto& seq : data){
         sparseData.emplace_back();

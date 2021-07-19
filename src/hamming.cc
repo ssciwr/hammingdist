@@ -14,11 +14,11 @@
 
 namespace hamming {
 
-DataSet::DataSet(std::vector<std::string>& data, bool clear_input_data, std::vector<std::size_t>&& indices)
+DataSet::DataSet(std::vector<std::string>& data, bool include_x, bool clear_input_data, std::vector<std::size_t>&& indices)
   : nsamples(data.size()), sequence_indices(std::move(indices))
 {
   validate_data(data);
-  result = distances(data, clear_input_data);
+  result = distances(data, include_x, clear_input_data);
 }
 
 DataSet::DataSet(const std::string& filename)
@@ -138,7 +138,7 @@ DataSet from_lower_triangular(const std::string& filename)
   return DataSet(std::move(distances));
 }
 
-DataSet from_fasta(const std::string& filename, bool remove_duplicates, std::size_t n)
+DataSet from_fasta(const std::string& filename, bool include_x, bool remove_duplicates, std::size_t n)
 {
   std::vector<std::string> data;
   data.reserve(n);
@@ -180,7 +180,7 @@ DataSet from_fasta(const std::string& filename, bool remove_duplicates, std::siz
       data[key_value_pair.second] = key_value_pair.first;
     }
   }
-  return DataSet(data, true, std::move(sequence_indices));
+  return DataSet(data, include_x, true, std::move(sequence_indices));
 }
 
 }

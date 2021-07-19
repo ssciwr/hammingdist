@@ -107,12 +107,16 @@ TEST_CASE("from_fasta single line sequences", "[hamming]") {
     of << "ACGTGTCGTTTCGACGAGTCG\n";
     of.close();
     for(bool remove_duplicates : {false, true}){
-      for(int n : {0, 2, 3, 8}){
-          auto d = from_fasta(tmp_file_name, remove_duplicates, n);
-          REQUIRE(d[{0, 0}] == 0);
-          REQUIRE(d[{0, 1}] == 2);
-          REQUIRE(d[{1, 0}] == 2);
-          REQUIRE(d[{1, 1}] == 0);
+      for(bool include_x : {false, true}){
+        CAPTURE(include_x);
+        CAPTURE(remove_duplicates);
+        for(int n : {0, 2, 3, 8}){
+            auto d = from_fasta(tmp_file_name, include_x, remove_duplicates, n);
+            REQUIRE(d[{0, 0}] == 0);
+            REQUIRE(d[{0, 1}] == 2);
+            REQUIRE(d[{1, 0}] == 2);
+            REQUIRE(d[{1, 1}] == 0);
+        }
       }
     }
     std::remove(tmp_file_name);
@@ -138,7 +142,9 @@ TEST_CASE("from_fasta single line sequences with duplicates", "[hamming]") {
     of.close();
     std::vector<std::size_t> sequence_indices{0, 1, 1, 1, 0, 2};
     for(int n : {0, 6, 22}){
-        auto d = from_fasta(tmp_file_name, true, n);
+      for(bool include_x : {false, true}){
+        CAPTURE(include_x);
+        auto d = from_fasta(tmp_file_name, include_x, true, n);
         REQUIRE(d.nsamples == 3);
         REQUIRE(d.sequence_indices == sequence_indices);
         REQUIRE(d[{0, 0}] == 0);
@@ -150,6 +156,7 @@ TEST_CASE("from_fasta single line sequences with duplicates", "[hamming]") {
         REQUIRE(d[{2, 0}] == 1);
         REQUIRE(d[{2, 1}] == 2);
         REQUIRE(d[{2, 2}] == 0);
+      }
     }
     std::remove(tmp_file_name);
 }
@@ -169,12 +176,15 @@ TEST_CASE("from_fasta multi-line sequences", "[hamming]") {
     of << "ACGTGTCGTGTCG\n";
     of.close();
     for(bool remove_duplicates : {false, true}){
-      for(int n : {0, 2, 3, 8}){
-          auto d = from_fasta(tmp_file_name, remove_duplicates, 2);
-          REQUIRE(d[{0, 0}] == 0);
-          REQUIRE(d[{0, 1}] == 2);
-          REQUIRE(d[{1, 0}] == 2);
-          REQUIRE(d[{1, 1}] == 0);
+      for(bool include_x : {false, true}){
+        CAPTURE(include_x);
+        for(int n : {0, 2, 3, 8}){
+            auto d = from_fasta(tmp_file_name, include_x, remove_duplicates, 2);
+            REQUIRE(d[{0, 0}] == 0);
+            REQUIRE(d[{0, 1}] == 2);
+            REQUIRE(d[{1, 0}] == 2);
+            REQUIRE(d[{1, 1}] == 0);
+        }
       }
     }
     std::remove(tmp_file_name);
