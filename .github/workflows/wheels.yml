@@ -9,7 +9,9 @@ jobs:
     env:
       CIBW_TEST_REQUIRES: 'pytest numpy'
       CIBW_TEST_COMMAND: 'pytest {project}/python/tests'
-      CIBW_TEST_SKIP: "pp*"
+      CIBW_TEST_SKIP: 'pp*'
+      CIBW_SKIP: "*-manylinux_i686"
+      CIBW_BUILD_VERBOSITY: 3
 
     strategy:
       matrix:
@@ -19,6 +21,10 @@ jobs:
     - uses: actions/checkout@v2
       with:
         submodules: 'recursive'
+
+    - name: enable openmp on linux
+      run: echo 'CIBW_ENVIRONMENT=HAMMING_WITH_OPENMP=ON' >> $GITHUB_ENV
+      if: runner.os == 'Linux'
 
     - uses: pypa/cibuildwheel@v2.0.0
 
