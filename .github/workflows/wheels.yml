@@ -10,6 +10,7 @@ jobs:
       CIBW_TEST_REQUIRES: 'pytest numpy'
       CIBW_TEST_COMMAND: 'pytest {project}/python/tests'
       CIBW_TEST_SKIP: 'pp*'
+      CIBW_ENVIRONMENT: 'BLAS=None LAPACK=None ATLAS=None'
       CIBW_SKIP: "*-manylinux_i686"
       CIBW_BUILD_VERBOSITY: 3
 
@@ -26,7 +27,7 @@ jobs:
       run: echo 'CIBW_ENVIRONMENT=HAMMING_WITH_OPENMP=ON' >> $GITHUB_ENV
       if: runner.os == 'Linux'
 
-    - uses: pypa/cibuildwheel@v2.0.0
+    - uses: pypa/cibuildwheel@v2.1.1
 
     - uses: actions/upload-artifact@v2
       with:
