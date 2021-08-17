@@ -9,9 +9,7 @@
 [submodule "cpu_features"]
 	path = ext/cpu_features
 	url = git://github.com/google/cpu_features.git
-[submodule "ext/Catch2"]
+
+[submodule "Catch2"]
 	path = ext/Catch2
 	url = git://github.com/catchorg/Catch2.git
-[submodule "ext/benchmark"]
-	path = ext/benchmark
-	url = git://github.com/google/benchmark.git
