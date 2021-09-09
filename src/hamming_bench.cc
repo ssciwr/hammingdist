@@ -1,6 +1,6 @@
+#include "bench.hh"
 #include "hamming/hamming.hh"
 #include "hamming_impl.hh"
-#include "bench.hh"
 #ifdef HAMMING_WITH_OPENMP
 #include <omp.h>
 #endif
@@ -31,7 +31,16 @@ static void bench_from_stringlist_omp(benchmark::State &state) {
 }
 #endif
 
-BENCHMARK(bench_from_stringlist)->RangeMultiplier(2)->Range(128, 8192)->Complexity();
+BENCHMARK(bench_from_stringlist)
+    ->RangeMultiplier(2)
+    ->Range(128, 8192)
+    ->Complexity();
 #ifdef HAMMING_WITH_OPENMP
-BENCHMARK(bench_from_stringlist_omp)->Arg(1)->Arg(2)->Arg(4)->Arg(8)->Arg(12)->Arg(24);
+BENCHMARK(bench_from_stringlist_omp)
+    ->Arg(1)
+    ->Arg(2)
+    ->Arg(4)
+    ->Arg(8)
+    ->Arg(12)
+    ->Arg(24);
 #endif

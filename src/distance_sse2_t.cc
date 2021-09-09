@@ -1,5 +1,5 @@
-#include "tests.hh"
 #include "distance_sse2.hh"
+#include "tests.hh"
 
 using namespace hamming;
 

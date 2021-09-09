@@ -1,0 +1,35 @@
+repos:
+
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.0.1
+    hooks:
+    - id: check-yaml
+    - id: end-of-file-fixer
+    - id: trailing-whitespace
+    - id: mixed-line-ending
+
+  - repo: https://github.com/psf/black
+    rev: 21.8b0
+    hooks:
+    - id: black
+
+  - repo: https://github.com/dfm/black_nbconvert
+    rev: v0.3.0
+    hooks:
+    - id: black_nbconvert
+
+  - repo: https://github.com/cheshirekow/cmake-format-precommit
+    rev: v0.6.13
+    hooks:
+    - id: cmake-format
+      additional_dependencies: [pyyaml==5.4.1]
+
+  - repo: https://github.com/kynan/nbstripout
+    rev: 0.5.0
+    hooks:
+    - id: nbstripout
+
+  - repo: git://github.com/doublify/pre-commit-clang-format
+    rev: 62302476d0da01515660132d76902359bed0f782
+    hooks:
+    - id: clang-format

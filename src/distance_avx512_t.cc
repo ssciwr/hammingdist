@@ -1,5 +1,5 @@
-#include "tests.hh"
 #include "distance_avx512.hh"
+#include "tests.hh"
 
 using namespace hamming;
 

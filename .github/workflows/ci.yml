@@ -15,7 +15,7 @@ jobs:
 
     strategy:
       matrix:
-        os: [ubuntu-18.04, macos-10.15, windows-2019]
+        os: [ubuntu-20.04, macos-10.15, windows-2019]
 
     steps:
     - uses: actions/checkout@v2
@@ -43,3 +43,35 @@ jobs:
       shell: bash
       working-directory: ${{runner.workspace}}/build
       run: ctest
+
+  format:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/setup-python@v2
+        with:
+          python-version: 3.9
+      - uses: actions/checkout@v2
+        with:
+          submodules: 'true'
+          fetch-depth: 0
+          ref: ${{ github.head_ref }}
+      - name: Set pyver checksum for pre-commit cache
+        run: echo "pyver=$(python -VV | sha256sum | cut -d' ' -f1)" >> $GITHUB_ENV
+      - name: Cache pre-commit
+        uses: actions/cache@v2
+        with:
+          path: ~/.cache/pre-commit
+          key: pre-commit-${{ env.pyver }}-${{ hashFiles('.pre-commit-config.yaml') }}
+          restore-keys: pre-commit-${{ env.pyver }}-${{ hashFiles('.pre-commit-config.yaml') }}
+      - name: Set clang-format version
+        run: |
+          sudo update-alternatives --remove-all clang-format || echo "nothing to remove"
+          sudo update-alternatives --install /usr/bin/clang-format clang-format /usr/bin/clang-format-12 100
+      - name: Install pre-commit
+        run: pip install pre-commit==2.14.0
+      - name: Run pre-commit
+        run: pre-commit run --all-files || echo "formatting changes required"
+      - name: Commit any changes
+        uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: Fix code formatting
