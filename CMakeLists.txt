@@ -44,7 +44,7 @@ target_link_libraries(distance PUBLIC hamming)
 
 # The python package
 if(HAMMING_BUILD_PYTHON)
-    add_subdirectory(python)
+  add_subdirectory(python)
 endif()
 
 include(FeatureSummary)

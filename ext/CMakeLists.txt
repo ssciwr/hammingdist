@@ -1,15 +1,15 @@
 if(HAMMING_BUILD_PYTHON)
-    add_subdirectory(pybind11)
+  add_subdirectory(pybind11)
 endif()
 
 if(BUILD_TESTING)
-    add_subdirectory(Catch2)
+  add_subdirectory(Catch2)
 endif()
 
 if(HAMMING_BUILD_BENCHMARKS)
-    set(BENCHMARK_ENABLE_GTEST_TESTS OFF)
-    set(BENCHMARK_ENABLE_TESTING OFF)
-    add_subdirectory(benchmark)
+  set(BENCHMARK_ENABLE_GTEST_TESTS OFF)
+  set(BENCHMARK_ENABLE_TESTING OFF)
+  add_subdirectory(benchmark)
 endif()
 
 # temporarily set BUILD_TESTING=OFF for cpu_features

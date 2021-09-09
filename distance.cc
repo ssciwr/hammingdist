@@ -1,10 +1,10 @@
-#include"hamming/hamming.hh"
+#include "hamming/hamming.hh"
 
-#include<chrono>
-#include<iostream>
-#include<string>
+#include <chrono>
+#include <iostream>
+#include <string>
 
-int main(int argc, char *argv[]	) {
+int main(int argc, char *argv[]) {
   std::string filename = std::string(argv[1]);
   std::size_t nsamples = std::stoi(std::string(argv[2]));
 
@@ -13,7 +13,7 @@ int main(int argc, char *argv[]	) {
   data.dump("distances.csv");
   auto stop = std::chrono::steady_clock::now();
   std::chrono::duration<double> elapsed_seconds = stop - start;
-  std::cout << "Processing fasta data set took " << elapsed_seconds.count() << "s" << std::endl;
+  std::cout << "Processing fasta data set took " << elapsed_seconds.count()
+            << "s" << std::endl;
   return 0;
 }
- 

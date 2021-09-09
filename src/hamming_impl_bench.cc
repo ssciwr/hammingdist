@@ -1,6 +1,6 @@
+#include "bench.hh"
 #include "hamming/hamming.hh"
 #include "hamming_impl.hh"
-#include "bench.hh"
 #ifdef HAMMING_WITH_OPENMP
 #include <omp.h>
 #endif
@@ -31,7 +31,7 @@ static void bench_distance_sparse(benchmark::State &state) {
   auto s1{make_string(n, gen, false)};
   auto s2{s1};
   // make ~0.5% of s2 elements differ from s1
-  randomize_n(s2, n/200, gen);
+  randomize_n(s2, n / 200, gen);
   auto sparse = to_sparse_data({s1, s2}, false);
   int d{0};
   for (auto _ : state) {
