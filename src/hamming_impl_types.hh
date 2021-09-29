@@ -1,8 +1,8 @@
 #ifndef _HAMMING_IMPL_TYPES_HH
 #define _HAMMING_IMPL_TYPES_HH
 
-#include<array>
-#include<cstdint>
+#include <array>
+#include <cstdint>
 
 namespace hamming {
 
@@ -13,6 +13,6 @@ constexpr std::size_t n_bits_per_gene{4};
 constexpr GeneBlock mask_gene0{0x0f};
 constexpr GeneBlock mask_gene1{0xf0};
 
-}
+} // namespace hamming
 
 #endif

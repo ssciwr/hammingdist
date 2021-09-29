@@ -8,7 +8,8 @@
 
 namespace hamming {
 
-int distance_avx512(const std::vector<GeneBlock>& a, const std::vector<GeneBlock>& b);
+int distance_avx512(const std::vector<GeneBlock> &a,
+                    const std::vector<GeneBlock> &b);
 
 }
 
