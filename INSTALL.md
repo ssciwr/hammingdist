@@ -2,11 +2,11 @@
 
 The following software is currently required if you build from scratch:
 
-* git
-* CMake >= 3.11
-* A reasonably new C++ compiler
-* Python 3
-* OpenMP for shared memory parallelization (optional)
+- git
+- CMake >= 3.11
+- A reasonably new C++ compiler
+- Python 3
+- OpenMP for shared memory parallelization (optional)
 
 # Building
 
