@@ -7,10 +7,10 @@ jobs:
     name: Build wheels on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     env:
-      CIBW_TEST_REQUIRES: 'pytest numpy'
-      CIBW_TEST_COMMAND: 'pytest {project}/python/tests'
-      CIBW_TEST_SKIP: 'pp*'
-      CIBW_ENVIRONMENT: 'BLAS=None LAPACK=None ATLAS=None'
+      CIBW_TEST_REQUIRES: "pytest numpy"
+      CIBW_TEST_COMMAND: "pytest {project}/python/tests"
+      CIBW_TEST_SKIP: "pp*"
+      CIBW_ENVIRONMENT: "BLAS=None LAPACK=None ATLAS=None"
       CIBW_SKIP: "*-manylinux_i686"
       CIBW_BUILD_VERBOSITY: 3
 
@@ -19,19 +19,19 @@ jobs:
         os: [ubuntu-20.04, macos-10.15, windows-2019]
 
     steps:
-    - uses: actions/checkout@v2
-      with:
-        submodules: 'recursive'
+      - uses: actions/checkout@v2
+        with:
+          submodules: "recursive"
 
-    - name: enable openmp on linux
-      run: echo 'CIBW_ENVIRONMENT=HAMMING_WITH_OPENMP=ON' >> $GITHUB_ENV
-      if: runner.os == 'Linux'
+      - name: enable openmp on linux
+        run: echo 'CIBW_ENVIRONMENT=HAMMING_WITH_OPENMP=ON' >> $GITHUB_ENV
+        if: runner.os == 'Linux'
 
-    - uses: pypa/cibuildwheel@v2.1.1
+      - uses: pypa/cibuildwheel@v2.1.1
 
-    - uses: actions/upload-artifact@v2
-      with:
-        path: ./wheelhouse/*.whl
+      - uses: actions/upload-artifact@v2
+        with:
+          path: ./wheelhouse/*.whl
 
   upload_pypi:
     needs: [build-wheels]
