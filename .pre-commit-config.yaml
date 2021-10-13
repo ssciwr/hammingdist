@@ -28,8 +28,8 @@ repos:
     hooks:
       - id: nbstripout
 
-  - repo: https://github.com/ssciwr/clang-format-hook
-    rev: v12.0.1
+  - repo: https://github.com/pre-commit/mirrors-clang-format
+    rev: v13.0.0
     hooks:
       - id: clang-format
 
