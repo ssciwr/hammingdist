@@ -81,8 +81,8 @@ def test_from_fasta(tmp_path):
     ],
 )
 def test_fasta_reference_distances(chars, include_x, tmp_path):
-    # generate 1000 sequences, each with 250 characters
-    sequences = ["".join(random.choices(chars, k=250)) for i in range(1000)]
+    # generate 50 sequences, each with 25 characters
+    sequences = ["".join(random.choices(chars, k=25)) for i in range(50)]
     fasta_file = str(tmp_path / "fasta.txt")
     write_fasta_file(fasta_file, sequences)
     # calculate distances matrix
