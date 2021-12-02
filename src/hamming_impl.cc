@@ -43,8 +43,7 @@ std::array<GeneBlock, 256> lookupTable(bool include_x) {
 
 DistIntType safe_int_cast(int x) {
   if (x > std::numeric_limits<DistIntType>::max()) {
-    throw std::runtime_error(
-        "Error: Distance is too large for chosen integer type");
+    return std::numeric_limits<DistIntType>::max();
   }
   return static_cast<DistIntType>(x);
 }
