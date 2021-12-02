@@ -101,3 +101,17 @@ def test_fasta_reference_distances(chars, include_x, tmp_path):
             # if x is not included, invalid chars have distance 1 but data[i,i] returns 0 by construction
             if include_x or i != j:
                 assert data[i, j] == dist
+            # should also agree with output of distance function for these two sequences
+            assert dist == hammingdist.distance(
+                sequences[i], sequences[j], include_x=include_x
+            )
+
+
+def test_distance():
+    assert hammingdist.distance("ACGT", "ACCT") == 1
+    # here X is invalid so has distance 1 from itself:
+    assert hammingdist.distance("ACGTX", "ACCTX") == 2
+    # now X is valid so has distance 0 from itself:
+    assert hammingdist.distance("ACGTX", "ACCTX", include_x=True) == 1
+    with pytest.raises(RuntimeError):
+        hammingdist.distance("ACGT", "ACC")

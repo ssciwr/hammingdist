@@ -204,4 +204,26 @@ fasta_reference_distances(const std::string &reference_sequence,
   return distances;
 }
 
+ReferenceDistIntType distance(const std::string &seq0, const std::string &seq1,
+                              bool include_x) {
+  auto lookup{lookupTable(include_x)};
+  ReferenceDistIntType distance{0};
+  if (seq0.size() != seq1.size()) {
+    throw std::runtime_error(
+        "Error: Sequences do not all have the same length");
+  }
+  for (std::size_t i = 0; i < seq0.size(); ++i) {
+    auto a{lookup[seq0[i]]};
+    auto b{lookup[seq1[i]]};
+    bool invalid{(a & b) == 0x00};
+    bool differ{(seq0[i] != seq1[i])};
+    if (invalid || differ) {
+      bool nodash{(a != 0xff) && (b != 0xff)};
+      distance +=
+          static_cast<ReferenceDistIntType>(invalid || (differ && nodash));
+    }
+  }
+  return distance;
+}
+
 } // namespace hamming

@@ -2,6 +2,7 @@
 #include "tests.hh"
 #include <cstdio>
 #include <fstream>
+#include <string>
 
 using namespace hamming;
 
@@ -9,23 +10,30 @@ static constexpr std::array<char, 4> valid_chars{'A', 'C', 'G', 'T'};
 static constexpr std::array<char, 6> invalid_chars{' ', 'N', '*',
                                                    '?', 'a', '.'};
 
-static int dist(char c1, char c2) {
+static int dist1(char c1, char c2) {
   std::vector<std::string> v{std::string{c1}, std::string{c2}};
   return from_stringlist(v)[{0, 1}];
+}
+
+static int dist2(char c1, char c2) {
+  return distance(std::string{c1}, std::string{c2});
 }
 
 TEST_CASE("distance between two equal valid characters is 0", "[distance]") {
   for (auto c : valid_chars) {
     CAPTURE(c);
-    REQUIRE(dist(c, c) == 0);
+    REQUIRE(dist1(c, c) == 0);
+    REQUIRE(dist2(c, c) == 0);
   }
 }
 
 TEST_CASE("distance between any valid char & '-' is 0", "[distance]") {
   for (auto c : valid_chars) {
     CAPTURE(c);
-    REQUIRE(dist(c, '-') == 0);
-    REQUIRE(dist('-', c) == 0);
+    REQUIRE(dist1(c, '-') == 0);
+    REQUIRE(dist1('-', c) == 0);
+    REQUIRE(dist2(c, '-') == 0);
+    REQUIRE(dist2('-', c) == 0);
   }
 }
 
@@ -36,7 +44,8 @@ TEST_CASE("distance between two different valid characters is 1",
       if (c1 != c2) {
         CAPTURE(c1);
         CAPTURE(c2);
-        REQUIRE(dist(c1, c2) == 1);
+        REQUIRE(dist1(c1, c2) == 1);
+        REQUIRE(dist2(c1, c2) == 1);
       }
     }
   }
@@ -48,7 +57,8 @@ TEST_CASE("distance between valid & invalid characters is 1", "[distance]") {
       CAPTURE(c1);
       CAPTURE(c2);
       CAPTURE((int)c2);
-      REQUIRE(dist(c1, c2) == 1);
+      REQUIRE(dist1(c1, c2) == 1);
+      REQUIRE(dist2(c1, c2) == 1);
     }
   }
 }
@@ -58,7 +68,8 @@ TEST_CASE("distance between two invalid characters is 1", "[distance]") {
     for (auto c2 : invalid_chars) {
       CAPTURE(c1);
       CAPTURE(c2);
-      REQUIRE(dist(c1, c2) == 1);
+      REQUIRE(dist1(c1, c2) == 1);
+      REQUIRE(dist2(c1, c2) == 1);
     }
   }
 }
@@ -66,8 +77,10 @@ TEST_CASE("distance between two invalid characters is 1", "[distance]") {
 TEST_CASE("distance between any invalid char & '-' is 1", "[distance]") {
   for (auto c : invalid_chars) {
     CAPTURE(c);
-    REQUIRE(dist(c, '-') == 1);
-    REQUIRE(dist('-', c) == 1);
+    REQUIRE(dist1(c, '-') == 1);
+    REQUIRE(dist1('-', c) == 1);
+    REQUIRE(dist2(c, '-') == 1);
+    REQUIRE(dist2('-', c) == 1);
   }
 }
 
@@ -211,12 +224,13 @@ TEST_CASE("invalid input data: inconsistent sequence lengths", "[invalid]") {
   std::vector<std::vector<std::string>> expr;
   expr.push_back({{"ACGT"}, {"A"}});
   expr.push_back({{"AC"}, {"ACGTCG"}});
-  expr.push_back({{"ACGT"}, {"ACGT"}, {"ACGT"}, {"A"}, {"ACGT"}, {"ACGT"}});
+  expr.push_back({{"ACGT"}, {"ACGT"}, {"ACGT"}, {"ACGT"}, {"ACGT"}, {"A"}});
   expr.push_back({{"ACGT"}, {"A-----"}});
   expr.push_back({{"ACGT"}, {""}});
   std::string msg{"Error: Sequences do not all have the same length"};
   for (auto &v : expr) {
     REQUIRE_THROWS_WITH(from_stringlist(v), msg);
+    REQUIRE_THROWS_WITH(distance(v.front(), v.back()), msg);
   }
 }
 

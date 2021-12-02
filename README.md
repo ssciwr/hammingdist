@@ -12,6 +12,8 @@ To use the Python interface, you should install it from PyPI:
 python -m pip install hammingdist
 ```
 
+## Distances matrix
+
 Then, you can e.g. use it in the following way from Python:
 
 ```python
@@ -63,9 +65,17 @@ distances = hammingdist.fasta_reference_distances(sequence, fasta_file, include_
 
 This function returns a numpy array that contains the distance of each sequence from the reference sequence.
 
+You can also calculate the distance between two individual sequences:
+
+```python
+import hammingdist
+
+distance = hammingdist.distance("ACGTX", "AAGTX", include_x=True)
+```
+
 ## OpenMP on linux
 
-The latest version of hammingdist on linux is now built with OpenMP (multithreading) support.
+The latest versions of hammingdist on linux are now built with OpenMP (multithreading) support.
 If this causes any issues, you can install a previous version of hammingdist without OpenMP support:
 
 ```bash

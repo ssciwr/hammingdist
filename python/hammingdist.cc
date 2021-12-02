@@ -51,6 +51,9 @@ PYBIND11_MODULE(hammingdist, m) {
   m.def("from_lower_triangular", &from_lower_triangular,
         "Creates a dataset by reading already computed distances from lower "
         "triangular format");
+  m.def("distance", &distance, py::arg("seq0"), py::arg("seq1"),
+        py::arg("include_x") = false,
+        "Calculate the distance between seq0 and seq1");
   m.def(
       "fasta_reference_distances",
       [](const std::string &reference_sequence, const std::string &fasta_file,
