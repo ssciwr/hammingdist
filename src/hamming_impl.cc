@@ -58,16 +58,18 @@ std::vector<DistIntType> distances(std::vector<std::string> &data,
 
   // if X is included, we have to use the sparse distance function
   bool use_sparse = include_x;
-  // if < 0.5% of values differ from reference genome, also use sparse distance
-  // function
-  constexpr double sparse_threshold{0.005};
-  std::size_t n_diff{0};
-  for (const auto &s : sparse) {
-    n_diff += s.size() / 2;
+  // otherwise, use heuristic to choose distance function: if < 0.5% of values
+  // differ from reference genome, use sparse distance function
+  if (!include_x) {
+    constexpr double sparse_threshold{0.005};
+    std::size_t n_diff{0};
+    for (const auto &s : sparse) {
+      n_diff += s.size() / 2;
+    }
+    double frac_diff{static_cast<double>(n_diff) /
+                     static_cast<double>(nsamples * sample_length)};
+    use_sparse = frac_diff < sparse_threshold;
   }
-  double frac_diff{static_cast<double>(n_diff) /
-                   static_cast<double>(nsamples * sample_length)};
-  use_sparse = frac_diff < sparse_threshold;
   if (use_sparse) {
     if (clear_input_data) {
       data.clear();

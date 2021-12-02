@@ -165,4 +165,43 @@ DataSet from_fasta(const std::string &filename, bool include_x,
   return DataSet(data, include_x, true, std::move(sequence_indices));
 }
 
+std::vector<ReferenceDistIntType>
+fasta_reference_distances(const std::string &reference_sequence,
+                          const std::string &fasta_file, bool include_x) {
+  std::vector<ReferenceDistIntType> distances;
+  distances.reserve(65536);
+  auto lookup{lookupTable(include_x)};
+  std::vector<GeneBlock> ref;
+  ref.reserve(reference_sequence.size());
+  for (char c : reference_sequence) {
+    ref.push_back(lookup[c]);
+  }
+  std::ifstream stream(fasta_file);
+  if (!stream) {
+    throw std::runtime_error("Error: Failed to open file '" + fasta_file + "'");
+  }
+  std::string line;
+  // skip first header
+  std::getline(stream, line);
+  while (!stream.eof()) {
+    std::string seq{};
+    while (std::getline(stream, line) && line[0] != '>') {
+      seq.append(line);
+    }
+    ReferenceDistIntType distance{0};
+    for (std::size_t i = 0; i < seq.size(); ++i) {
+      auto a{lookup[seq[i]]};
+      bool invalid{(a & ref[i]) == 0x00};
+      bool differ{(seq[i] != reference_sequence[i])};
+      if (invalid || differ) {
+        bool nodash{(a != 0xff) && (ref[i] != 0xff)};
+        distance +=
+            static_cast<ReferenceDistIntType>(invalid || (differ && nodash));
+      }
+    }
+    distances.push_back(distance);
+  }
+  return distances;
+}
+
 } // namespace hamming

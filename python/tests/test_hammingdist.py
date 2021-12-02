@@ -1,26 +1,16 @@
 import hammingdist
 import numpy as np
+import random
+import pytest
 
 
-def write_fasta_file(filename):
+def write_fasta_file(filename, sequences):
     with open(filename, "w") as f:
-        f.write(">seq0\n")
-        f.write("ACGTGTCGTGTCGACGTGTCG\n")
-        f.write(">seq1\n")
-        f.write("ACGTGTCGTTTCGACGAGTCG\n")
-        f.write(">seq2\n")
-        f.write("ACGTGTCGTTTCGACGAGTCG\n")
-        f.write(">seq3\n")
-        f.write("ACGTGTCGTTTCGACGAGTCG\n")
-        f.write(">seq4\n")
-        f.write("ACGTGTCGTGTCGACGTGTCG\n")
-        f.write(">seq5\n")
-        f.write("ACGTGTCGTATCGACGTGTCG\n")
+        for i, seq in enumerate(sequences):
+            f.write(f">seq{i}\n{seq}\n")
 
 
-def check_output_size(dat, n_in, n_out):
-    tmp_out_file = "out.txt"
-
+def check_output_sizes(dat, n_in, n_out, tmp_out_file):
     dat.dump(tmp_out_file)
     dump = np.loadtxt(tmp_out_file, delimiter=",")
     assert len(dump) == n_out
@@ -40,29 +30,74 @@ def check_output_size(dat, n_in, n_out):
     assert indices[0] == 0
 
 
-def test_from_fasta():
-    tmp_in_file = "in.txt"
-    write_fasta_file(tmp_in_file)
+def test_from_fasta(tmp_path):
+    sequences = [
+        "ACGTGTCGTGTCGACGTGTCG",
+        "ACGTGTCGTTTCGACGAGTCG",
+        "ACGTGTCGTTTCGACGAGTCG",
+        "ACGTGTCGTTTCGACGAGTCG",
+        "ACGTGACGTGTCGACGTGTCG",
+        "ACGTGXCGTGTCGACGTGTCG",
+    ]
+    fasta_file = str(tmp_path / "fasta.txt")
+    output_file = str(tmp_path / "out.txt")
+    write_fasta_file(fasta_file, sequences)
 
-    data = hammingdist.from_fasta(tmp_in_file)
-    check_output_size(data, 6, 6)
+    data = hammingdist.from_fasta(fasta_file)
+    check_output_sizes(data, 6, 6, output_file)
 
-    data = hammingdist.from_fasta(tmp_in_file, n=5)
-    check_output_size(data, 5, 5)
+    data = hammingdist.from_fasta(fasta_file, n=5)
+    check_output_sizes(data, 5, 5, output_file)
 
-    data = hammingdist.from_fasta(tmp_in_file, include_x=True)
-    check_output_size(data, 6, 6)
+    data = hammingdist.from_fasta(fasta_file, include_x=True)
+    check_output_sizes(data, 6, 6, output_file)
 
-    data = hammingdist.from_fasta(tmp_in_file, remove_duplicates=True)
-    check_output_size(data, 6, 3)
+    data = hammingdist.from_fasta(fasta_file, remove_duplicates=True)
+    check_output_sizes(data, 6, 4, output_file)
 
-    data = hammingdist.from_fasta(tmp_in_file, include_x=True, n=2)
-    check_output_size(data, 2, 2)
+    data = hammingdist.from_fasta(fasta_file, remove_duplicates=True, include_x=True)
+    check_output_sizes(data, 6, 4, output_file)
 
-    data = hammingdist.from_fasta(tmp_in_file, remove_duplicates=True, n=3)
-    check_output_size(data, 3, 2)
+    data = hammingdist.from_fasta(fasta_file, include_x=True, n=2)
+    check_output_sizes(data, 2, 2, output_file)
+
+    data = hammingdist.from_fasta(fasta_file, remove_duplicates=True, n=3)
+    check_output_sizes(data, 3, 2, output_file)
 
     data = hammingdist.from_fasta(
-        tmp_in_file, remove_duplicates=True, n=5, include_x=True
+        fasta_file, remove_duplicates=True, n=5, include_x=True
     )
-    check_output_size(data, 5, 2)
+    check_output_sizes(data, 5, 3, output_file)
+
+
+@pytest.mark.parametrize(
+    "chars,include_x",
+    [
+        (["A"], False),
+        (["A", "C", "G", "T", "-"], False),
+        (["A", "C", "G", "T", "-"], True),
+        (["A", "C", "G", "T", "-", "X"], False),
+        (["A", "C", "G", "T", "-", "X"], True),
+    ],
+)
+def test_fasta_reference_distances(chars, include_x, tmp_path):
+    # generate 1000 sequences, each with 250 characters
+    sequences = ["".join(random.choices(chars, k=250)) for i in range(1000)]
+    fasta_file = str(tmp_path / "fasta.txt")
+    write_fasta_file(fasta_file, sequences)
+    # calculate distances matrix
+    data = hammingdist.from_fasta(
+        fasta_file, remove_duplicates=False, include_x=include_x
+    )
+    # use each sequence in turn as the reference sequence & calculate reference distances
+    for i, sequence in enumerate(sequences):
+        vec = hammingdist.fasta_reference_distances(
+            sequence, fasta_file, include_x=include_x
+        )
+        assert len(vec) == len(sequences)
+        assert vec.dtype == np.uint32
+        # reference distance vector should match corresponding column of distances matrix
+        for j, dist in enumerate(vec):
+            # if x is not included, invalid chars have distance 1 but data[i,i] returns 0 by construction
+            if include_x or i != j:
+                assert data[i, j] == dist

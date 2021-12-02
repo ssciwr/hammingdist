@@ -1,6 +1,12 @@
 name: Build Wheels + PyPI deploy
 
-on: [push, pull_request, release]
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+  release:
 
 jobs:
   build-wheels:
@@ -8,7 +14,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     env:
       CIBW_TEST_REQUIRES: "pytest numpy"
-      CIBW_TEST_COMMAND: "pytest {project}/python/tests"
+      CIBW_TEST_COMMAND: "pytest {project}/python/tests -v"
       CIBW_TEST_SKIP: "pp* *-musllinux*"
       CIBW_ENVIRONMENT: "BLAS=None LAPACK=None ATLAS=None"
       CIBW_SKIP: "*-manylinux_i686"

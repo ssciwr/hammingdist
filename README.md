@@ -51,10 +51,22 @@ data.dump_sequence_indices("indices.txt")
 data = hammingdist.from_stringlist(["ACGTACGT", "ACGTAGGT", "ATTTACGT"])
 ```
 
+## Distances from reference sequence
+
+The distance of each sequence in a fasta file from a given reference sequence can be calculated using:
+
+```python
+import hammingdist
+
+distances = hammingdist.fasta_reference_distances(sequence, fasta_file, include_x=True)
+```
+
+This function returns a numpy array that contains the distance of each sequence from the reference sequence.
+
 ## OpenMP on linux
 
 The latest version of hammingdist on linux is now built with OpenMP (multithreading) support.
-If this causes any issues, you can install the previous version of hammingdist without OpenMP support:
+If this causes any issues, you can install a previous version of hammingdist without OpenMP support:
 
 ```bash
 pip install hammingdist==0.11.0

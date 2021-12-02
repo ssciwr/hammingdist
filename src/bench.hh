@@ -11,6 +11,8 @@ namespace hamming {
 std::string make_string(int64_t n, std::mt19937 &gen, bool include_dash = true);
 void randomize_n(std::string &str, std::size_t n, std::mt19937 &gen);
 std::vector<std::string> make_stringlist(int64_t n, std::mt19937 &gen);
+void write_fasta(const std::string &filename, const std::string &seq,
+                 std::size_t n_seq, std::mt19937 &gen);
 
 } // namespace hamming
 
