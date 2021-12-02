@@ -5,7 +5,7 @@ cmake_minimum_required(VERSION 3.11)
 include(CTest)
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 17)
 
 # compilation options
 set(HAMMING_WITH_OPENMP

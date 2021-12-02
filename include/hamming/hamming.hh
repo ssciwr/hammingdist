@@ -13,6 +13,11 @@ DataSet from_fasta(const std::string &, bool include_x = false,
                    bool remove_duplicates = false, std::size_t n = 0);
 DataSet from_lower_triangular(const std::string &);
 
+std::vector<ReferenceDistIntType>
+fasta_reference_distances(const std::string &reference_sequence,
+                          const std::string &fasta_file,
+                          bool include_x = false);
+
 } // namespace hamming
 
 #endif

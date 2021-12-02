@@ -31,6 +31,17 @@ static void bench_from_stringlist_omp(benchmark::State &state) {
 }
 #endif
 
+static void bench_fasta_reference_distances(benchmark::State &state) {
+  std::mt19937 gen(12345);
+  std::string fasta_file{"fasta.txt"};
+  auto reference_seq{make_string(30000, gen, true)};
+  write_fasta(fasta_file, reference_seq, state.range(0), gen);
+  std::vector<ReferenceDistIntType> distances;
+  for (auto _ : state) {
+    distances = fasta_reference_distances(reference_seq, fasta_file, true);
+  }
+}
+
 BENCHMARK(bench_from_stringlist)
     ->RangeMultiplier(2)
     ->Range(128, 8192)
@@ -44,3 +55,7 @@ BENCHMARK(bench_from_stringlist_omp)
     ->Arg(12)
     ->Arg(24);
 #endif
+BENCHMARK(bench_fasta_reference_distances)
+    ->RangeMultiplier(2)
+    ->Range(16, 32384)
+    ->Complexity();
