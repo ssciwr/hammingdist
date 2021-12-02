@@ -241,18 +241,19 @@ TEST_CASE("from_csv reproduces correct data", "[hamming]") {
   std::remove(tmp_file_name);
 }
 
-// skip this test of openmp is enabled: affects exception handling
-#ifndef HAMMING_WITH_OPENMP
-TEST_CASE("throws on distance integer overflow", "[hamming]") {
-  auto n = std::numeric_limits<DistIntType>::max() + 1;
+TEST_CASE("distance integer saturates instead of overflowing", "[hamming]") {
+  auto n_max{static_cast<std::size_t>(std::numeric_limits<DistIntType>::max())};
   std::mt19937 gen(12345);
   std::vector<std::string> data(2);
-  data[0] = std::string(n, 'A');
-  data[1] = std::string(n, 'T');
-  std::string msg{"Error: Distance is too large for chosen integer type"};
-  REQUIRE_THROWS_WITH(DataSet(data), msg);
+  for (auto n : {n_max, n_max + 1, n_max + 99}) {
+    CAPTURE(n);
+    data[0] = std::string(n, 'A');
+    data[1] = std::string(n, 'T');
+    DataSet dataSet(data);
+    REQUIRE(dataSet[{0, 1}] == n_max);
+    REQUIRE(dataSet[{1, 0}] == n_max);
+  }
 }
-#endif
 
 TEST_CASE("from_lower_triangular reproduces correct data", "[hamming]") {
   std::mt19937 gen(12345);
