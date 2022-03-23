@@ -111,7 +111,7 @@ std::vector<DistIntType> distances(std::vector<std::string> &data,
 #endif
 
 #ifdef HAMMING_WITH_OPENMP
-#pragma omp parallel for
+#pragma omp parallel for schedule(static, 1)
 #endif
   for (std::size_t i = 0; i < nsamples; ++i) {
     std::size_t offset{i * (i - 1) / 2};
