@@ -161,8 +161,8 @@ int distance_cpp(const std::vector<GeneBlock> &a,
   int r{0};
   for (std::size_t i = 0; i < a.size(); ++i) {
     auto c{static_cast<GeneBlock>(a[i] & b[i])};
-    r += static_cast<int>((c & mask_gene0) == 0);
-    r += static_cast<int>((c & mask_gene1) == 0);
+    r += static_cast<int>((c & mask_gene0) == 0) +
+         static_cast<int>((c & mask_gene1) == 0);
   }
   return r;
 }
