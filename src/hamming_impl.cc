@@ -94,9 +94,9 @@ std::vector<DistIntType> distances(std::vector<std::string> &data,
   const auto features = cpu_features::GetX86Info().features;
   int (*distance_func)(const std::vector<GeneBlock> &a,
                        const std::vector<GeneBlock> &b) = distance_cpp;
-#ifdef HAMMING_WITH_AVX512
-  if (features.avx512bw) {
-    distance_func = distance_avx512;
+#ifdef HAMMING_WITH_SSE2
+  if (features.sse2) {
+    distance_func = distance_sse2;
   }
 #endif
 #ifdef HAMMING_WITH_AVX2
@@ -104,11 +104,12 @@ std::vector<DistIntType> distances(std::vector<std::string> &data,
     distance_func = distance_avx2;
   }
 #endif
-#ifdef HAMMING_WITH_SSE2
-  if (features.sse2) {
-    distance_func = distance_sse2;
+#ifdef HAMMING_WITH_AVX512
+  if (features.avx512bw) {
+    distance_func = distance_avx512;
   }
 #endif
+
 #ifdef HAMMING_WITH_OPENMP
 #pragma omp parallel for
 #endif
