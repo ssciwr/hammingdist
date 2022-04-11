@@ -13,8 +13,8 @@ The following software is currently required if you build from scratch:
 This sequence of commands lets you start from scratch:
 
 ```bash
-git clone https://gitlab.dune-project.org/dominic/covid-tda.git
-cd covid-tda
+git clone https://github.com/ssciwr/hammingdist.git
+cd hammingdist
 mkdir build
 cd build
 cmake -DCMAKE_BUILD_TYPE=Release ..
@@ -58,8 +58,8 @@ OMP_NUM_THREADS=8 ./distance <path-to-input> <n>
 This sequence of command should build the Python interface:
 
 ```
-git clone --recursive https://gitlab.dune-project.org/dominic/covid-tda.git
-cd covid-tda
+git clone --recursive https://github.com/ssciwr/hammingdist.git
+cd hammingdist
 
 mkdir build
 cd build
