@@ -1,6 +1,9 @@
-project(covid-tda LANGUAGES CXX)
-
 cmake_minimum_required(VERSION 3.11)
+
+project(
+  hammingdist
+  VERSION 0.15.0
+  LANGUAGES CXX)
 
 include(CTest)
 
