@@ -94,9 +94,9 @@ std::vector<DistIntType> distances(std::vector<std::string> &data,
   const auto features = cpu_features::GetX86Info().features;
   int (*distance_func)(const std::vector<GeneBlock> &a,
                        const std::vector<GeneBlock> &b) = distance_cpp;
-#ifdef HAMMING_WITH_AVX512
-  if (features.avx512bw) {
-    distance_func = distance_avx512;
+#ifdef HAMMING_WITH_SSE2
+  if (features.sse2) {
+    distance_func = distance_sse2;
   }
 #endif
 #ifdef HAMMING_WITH_AVX2
@@ -104,13 +104,14 @@ std::vector<DistIntType> distances(std::vector<std::string> &data,
     distance_func = distance_avx2;
   }
 #endif
-#ifdef HAMMING_WITH_SSE2
-  if (features.sse2) {
-    distance_func = distance_sse2;
+#ifdef HAMMING_WITH_AVX512
+  if (features.avx512bw) {
+    distance_func = distance_avx512;
   }
 #endif
+
 #ifdef HAMMING_WITH_OPENMP
-#pragma omp parallel for
+#pragma omp parallel for schedule(static, 1)
 #endif
   for (std::size_t i = 0; i < nsamples; ++i) {
     std::size_t offset{i * (i - 1) / 2};
@@ -160,8 +161,8 @@ int distance_cpp(const std::vector<GeneBlock> &a,
   int r{0};
   for (std::size_t i = 0; i < a.size(); ++i) {
     auto c{static_cast<GeneBlock>(a[i] & b[i])};
-    r += static_cast<int>((c & mask_gene0) == 0);
-    r += static_cast<int>((c & mask_gene1) == 0);
+    r += static_cast<int>((c & mask_gene0) == 0) +
+         static_cast<int>((c & mask_gene1) == 0);
   }
   return r;
 }

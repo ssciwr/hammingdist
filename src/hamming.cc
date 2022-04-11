@@ -68,6 +68,26 @@ void DataSet::dump(const std::string &filename) {
 
 void DataSet::dump_lower_triangular(const std::string &filename) {
   std::ofstream stream(filename);
+#ifdef HAMMING_WITH_OPENMP
+  std::size_t block_size = 200;
+#pragma omp parallel for ordered schedule(static, 1)
+  for (std::size_t i_start = 1; i_start < nsamples; i_start += block_size) {
+    std::stringstream line;
+    std::size_t i_end = i_start + block_size;
+    if (i_end > nsamples) {
+      i_end = nsamples;
+    }
+    for (std::size_t i = i_start; i < i_end; ++i) {
+      std::size_t offset{i * (i - 1) / 2};
+      for (std::size_t j = 0; j + 1 < i; ++j) {
+        line << static_cast<int>(result[offset + j]) << ",";
+      }
+      line << static_cast<int>(result[offset + i - 1]) << "\n";
+    }
+#pragma omp ordered
+    stream << line.str();
+  }
+#else
   std::size_t k = 0;
   for (std::size_t i = 1; i < nsamples; ++i) {
     for (std::size_t j = 0; j + 1 < i; ++j) {
@@ -75,6 +95,7 @@ void DataSet::dump_lower_triangular(const std::string &filename) {
     }
     stream << static_cast<int>(result[k++]) << "\n";
   }
+#endif
 }
 
 void DataSet::dump_sequence_indices(const std::string &filename) {
