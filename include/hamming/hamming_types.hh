@@ -8,7 +8,7 @@
 
 namespace hamming {
 
-using DistIntType = uint8_t;
+using DistIntType = uint16_t;
 using ReferenceDistIntType = uint32_t;
 
 struct DataSet {

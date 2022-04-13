@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.11)
 
 project(
   hammingdist
-  VERSION 0.15.0
+  VERSION 0.16.0
   LANGUAGES CXX)
 
 include(CTest)
