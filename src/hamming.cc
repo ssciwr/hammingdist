@@ -192,7 +192,7 @@ fasta_reference_distances(const std::string &reference_sequence,
   std::vector<ReferenceDistIntType> distances;
   distances.reserve(65536);
   auto lookup{lookupTable(include_x)};
-  std::vector<GeneBlock> ref;
+  std::vector<Gene> ref;
   ref.reserve(reference_sequence.size());
   for (char c : reference_sequence) {
     ref.push_back(lookup[c]);

@@ -11,7 +11,7 @@
 
 namespace hamming {
 
-std::array<GeneBlock, 256> lookupTable(bool include_x = false);
+std::array<Gene, 256> lookupTable(bool include_x = false);
 
 DistIntType safe_int_cast(int x);
 
@@ -20,18 +20,17 @@ std::vector<DistIntType> distances(std::vector<std::string> &data,
 
 int distance_sparse(const SparseData &a, const SparseData &b);
 
-int distance_cpp(const std::vector<GeneBlock> &a,
-                 const std::vector<GeneBlock> &b);
+int distance_cpp(const std::vector<Gene> &a, const std::vector<Gene> &b);
 
 void validate_data(const std::vector<std::string> &data);
 
 std::vector<SparseData> to_sparse_data(const std::vector<std::string> &data,
                                        bool include_x);
 
-std::vector<std::vector<GeneBlock>>
+std::vector<std::vector<Gene>>
 to_dense_data(const std::vector<std::string> &data);
 
-std::vector<GeneBlock> from_string(const std::string &str);
+std::vector<Gene> from_string(const std::string &str);
 
 } // namespace hamming
 

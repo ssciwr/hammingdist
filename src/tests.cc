@@ -19,8 +19,7 @@ std::string make_test_string(int n, std::mt19937 &gen, bool include_x) {
   return s;
 }
 
-std::vector<GeneBlock> make_gene_vector(int n, std::mt19937 &gen,
-                                        bool include_x) {
+std::vector<Gene> make_gene_vector(int n, std::mt19937 &gen, bool include_x) {
   return from_string(make_test_string(n, gen, include_x));
 }
 

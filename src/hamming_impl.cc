@@ -19,23 +19,22 @@
 namespace hamming {
 
 // bit meaning:
-// 1111: '-'
-// 0001: 'A'
-// 0010: 'C'
-// 0100: 'G'
-// 1000: 'T'
-// 0000: invalid
-// 0011: 'X' (only if include_x = true)
-std::array<GeneBlock, 256> lookupTable(bool include_x) {
-  std::array<GeneBlock, 256> lookup{};
+// 11111111: '-'
+// 00000001: 'A'
+// 00000010: 'C'
+// 00000100: 'G'
+// 00001000: 'T'
+// 00000000: invalid
+// 00010000: 'X' (only if include_x = true)
+std::array<Gene, 256> lookupTable(bool include_x) {
+  std::array<Gene, 256> lookup{};
   lookup[std::size_t('-')] = 0xff;
-  lookup[std::size_t('A')] = 1 | (1 << n_bits_per_gene);
-  lookup[std::size_t('C')] = (1 << 1) | (1 << (n_bits_per_gene + 1));
-  lookup[std::size_t('G')] = (1 << 2) | (1 << (n_bits_per_gene + 2));
-  lookup[std::size_t('T')] = (1 << 3) | (1 << (n_bits_per_gene + 3));
+  lookup[std::size_t('A')] = 1;
+  lookup[std::size_t('C')] = (1 << 1);
+  lookup[std::size_t('G')] = (1 << 2);
+  lookup[std::size_t('T')] = (1 << 3);
   if (include_x) {
-    lookup[std::size_t('X')] =
-        1 | (1 << 1) | (1 << n_bits_per_gene) | (1 << (n_bits_per_gene + 1));
+    lookup[std::size_t('X')] = (1 << 4);
   }
 
   return lookup;
@@ -92,8 +91,8 @@ std::vector<DistIntType> distances(std::vector<std::string> &data,
     data.clear();
   }
   const auto features = cpu_features::GetX86Info().features;
-  int (*distance_func)(const std::vector<GeneBlock> &a,
-                       const std::vector<GeneBlock> &b) = distance_cpp;
+  int (*distance_func)(const std::vector<Gene> &a, const std::vector<Gene> &b) =
+      distance_cpp;
 #ifdef HAMMING_WITH_SSE2
   if (features.sse2) {
     distance_func = distance_sse2;
@@ -156,13 +155,10 @@ int distance_sparse(const SparseData &a, const SparseData &b) {
   return r;
 }
 
-int distance_cpp(const std::vector<GeneBlock> &a,
-                 const std::vector<GeneBlock> &b) {
+int distance_cpp(const std::vector<Gene> &a, const std::vector<Gene> &b) {
   int r{0};
   for (std::size_t i = 0; i < a.size(); ++i) {
-    auto c{static_cast<GeneBlock>(a[i] & b[i])};
-    r += static_cast<int>((c & mask_gene0) == 0) +
-         static_cast<int>((c & mask_gene1) == 0);
+    r += static_cast<int>((a[i] & b[i]) == 0);
   }
   return r;
 }
@@ -228,9 +224,9 @@ std::vector<SparseData> to_sparse_data(const std::vector<std::string> &data,
   return sparseData;
 }
 
-std::vector<std::vector<GeneBlock>>
+std::vector<std::vector<Gene>>
 to_dense_data(const std::vector<std::string> &data) {
-  std::vector<std::vector<GeneBlock>> dense;
+  std::vector<std::vector<Gene>> dense;
   dense.reserve(data.size());
   for (const auto &str : data) {
     dense.push_back(from_string(str));
@@ -238,22 +234,14 @@ to_dense_data(const std::vector<std::string> &data) {
   return dense;
 }
 
-std::vector<GeneBlock> from_string(const std::string &str) {
-  alignas(16) std::vector<GeneBlock> r;
+std::vector<Gene> from_string(const std::string &str) {
+  alignas(16) std::vector<Gene> r;
   auto lookup = lookupTable();
-  std::size_t n_full_blocks{str.size() / 2};
-  r.reserve(1 + n_full_blocks);
+  r.reserve(str.size());
   auto iter_str = str.cbegin();
-  for (std::size_t i_block = 0; i_block < n_full_blocks; ++i_block) {
-    r.push_back(lookup[*iter_str] & mask_gene0);
+  for (std::size_t i_block = 0; i_block < str.size(); ++i_block) {
+    r.push_back(lookup[*iter_str]);
     ++iter_str;
-    r.back() |= (lookup[*iter_str] & mask_gene1);
-    ++iter_str;
-  }
-  // pad last GeneBlock if odd number of chars
-  if (iter_str != str.cend()) {
-    r.push_back(lookup[*iter_str] & mask_gene0);
-    r.back() |= (lookup['-'] & mask_gene1);
   }
   return r;
 }
