@@ -31,10 +31,8 @@ int distance_avx512(const std::vector<Gene> &a, const std::vector<Gene> &b) {
       // load a[i], b[i] into registers
       r_a = _mm512_loadu_si512((__m512i *)(a.data() + n_genes * i));
       r_b = _mm512_loadu_si512((__m512i *)(b.data() + n_genes * i));
-      // a[i] & b[i]
-      r_a = _mm512_and_si512(r_a, r_b);
-      // compare with zero: if equal put a 1 bit in mask
-      r_m = _mm512_cmpeq_epi8_mask(r_a, _mm512_setzero_si512());
+      // if (a[i] & b[i]) != 0 put 1 in mask, otherwise 0 in mask
+      r_m = _mm512_testn_epi8_mask(r_a, r_b);
       // add 1 for each mask bit to distance counts
       r_s = _mm512_mask_add_epi8(r_s, r_m, lsb, r_s);
     }
@@ -42,11 +40,12 @@ int distance_avx512(const std::vector<Gene> &a, const std::vector<Gene> &b) {
     // sum 8 blocks of 8 uint8 distances to 8 uint64
     constexpr std::size_t n_partialsums{n_genes / 8};
     r_s = _mm512_sad_epu8(r_s, _mm512_setzero_si512());
-    alignas(64) std::uint64_t r_partial[n_partialsums];
-    _mm512_storeu_si512((__m512i *)r_partial, r_s);
-    for (std::size_t i = 0; i < n_partialsums; ++i) {
-      r += r_partial[i];
-    }
+    r += _mm512_reduce_add_epi64(r_s);
+    //    alignas(64) std::uint64_t r_partial[n_partialsums];
+    //    _mm512_storeu_si512((__m512i *)r_partial, r_s);
+    //    for (std::size_t i = 0; i < n_partialsums; ++i) {
+    //      r += r_partial[i];
+    //    }
   }
   // do last partial block without simd intrinsics
   for (std::size_t i = n_genes * n_iter; i < a.size(); ++i) {
