@@ -19,23 +19,22 @@
 namespace hamming {
 
 // bit meaning:
-// 1111: '-'
-// 0001: 'A'
-// 0010: 'C'
-// 0100: 'G'
-// 1000: 'T'
-// 0000: invalid
-// 0011: 'X' (only if include_x = true)
+// note: lsb is '-' flag: 0 for '-', 1 for all other values
+// 0000: '-' (0)
+// 0001: 'A' (1)
+// 0011: 'C' (3)
+// 0101: 'G' (5)
+// 0111: 'T' (7)
+// 1001: 'X' (9 - only if include_x = true)
 std::array<GeneBlock, 256> lookupTable(bool include_x) {
   std::array<GeneBlock, 256> lookup{};
-  lookup[std::size_t('-')] = 0xff;
-  lookup[std::size_t('A')] = 1 | (1 << n_bits_per_gene);
-  lookup[std::size_t('C')] = (1 << 1) | (1 << (n_bits_per_gene + 1));
-  lookup[std::size_t('G')] = (1 << 2) | (1 << (n_bits_per_gene + 2));
-  lookup[std::size_t('T')] = (1 << 3) | (1 << (n_bits_per_gene + 3));
+  lookup[std::size_t('-')] = 0;
+  lookup[std::size_t('A')] = 0x11;
+  lookup[std::size_t('C')] = 0x33;
+  lookup[std::size_t('G')] = 0x55;
+  lookup[std::size_t('T')] = 0x77;
   if (include_x) {
-    lookup[std::size_t('X')] =
-        1 | (1 << 1) | (1 << n_bits_per_gene) | (1 << (n_bits_per_gene + 1));
+    lookup[std::size_t('X')] = 0x99;
   }
 
   return lookup;
@@ -160,9 +159,12 @@ int distance_cpp(const std::vector<GeneBlock> &a,
                  const std::vector<GeneBlock> &b) {
   int r{0};
   for (std::size_t i = 0; i < a.size(); ++i) {
-    auto c{static_cast<GeneBlock>(a[i] & b[i])};
-    r += static_cast<int>((c & mask_gene0) == 0) +
-         static_cast<int>((c & mask_gene1) == 0);
+    auto diff0{static_cast<int>((a[i] & mask_gene0) != (b[i] & mask_gene0))};
+    auto dash0{a[i] & b[i] & 0x1};
+    r += diff0 * dash0;
+    auto diff1{static_cast<int>((a[i] & mask_gene1) != (b[i] & mask_gene1))};
+    auto dash1{a[i] & b[i] & 0x10 >> 4};
+    r += diff1 * dash1;
   }
   return r;
 }
