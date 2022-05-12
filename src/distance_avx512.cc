@@ -7,6 +7,8 @@ int distance_avx512(const std::vector<Gene> &a, const std::vector<Gene> &b) {
   // distance implementation using AVX512 simd intrinsics
   // a 512-bit register holds 64 Genes
   constexpr std::size_t n_genes{64};
+  const Gene *a_data{a.data()};
+  const Gene *b_data{b.data()};
   int r{0};
   // mask to select LSB of each gene
   const __m512i lsb = _mm512_set1_epi8(1);
@@ -29,8 +31,8 @@ int distance_avx512(const std::vector<Gene> &a, const std::vector<Gene> &b) {
     r_s = _mm512_set1_epi8(0);
     for (std::size_t i = j * n_inner; i < n; ++i) {
       // load a[i], b[i] into registers
-      r_a = _mm512_loadu_si512((__m512i *)(a.data() + n_genes * i));
-      r_b = _mm512_loadu_si512((__m512i *)(b.data() + n_genes * i));
+      r_a = _mm512_loadu_si512((__m512i *)(a_data + n_genes * i));
+      r_b = _mm512_loadu_si512((__m512i *)(b_data + n_genes * i));
       // if (a[i] & b[i]) != 0 put 1 in mask, otherwise 0 in mask
       r_m = _mm512_testn_epi8_mask(r_a, r_b);
       // add 1 for each mask bit to distance counts
