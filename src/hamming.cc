@@ -186,6 +186,34 @@ DataSet from_fasta(const std::string &filename, bool include_x,
   return DataSet(data, include_x, true, std::move(sequence_indices));
 }
 
+std::vector<std::size_t> fasta_sequence_indices(const std::string &fasta_file,
+                                                std::size_t n) {
+  std::vector<std::size_t> sequence_indices{};
+  std::unordered_map<std::string, std::size_t> map_seq_to_index;
+  std::ifstream stream(fasta_file);
+  if (n == 0) {
+    n = std::numeric_limits<std::size_t>::max();
+  }
+  std::size_t count = 0;
+  std::size_t count_unique = 0;
+  std::string line;
+  // skip first header
+  std::getline(stream, line);
+  while (count < n && !stream.eof()) {
+    std::string seq{};
+    while (std::getline(stream, line) && line[0] != '>') {
+      seq.append(line);
+    }
+    auto result = map_seq_to_index.emplace(std::move(seq), count_unique);
+    if (result.second) {
+      ++count_unique;
+    }
+    sequence_indices.push_back(result.first->second);
+    ++count;
+  }
+  return sequence_indices;
+}
+
 std::vector<ReferenceDistIntType>
 fasta_reference_distances(const std::string &reference_sequence,
                           const std::string &fasta_file, bool include_x) {
