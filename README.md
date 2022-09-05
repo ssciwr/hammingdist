@@ -65,11 +65,11 @@ For example given this set of three input sequences:
 | 1     | ACG      |
 | 2     | TAG      |
 
-The distances matrix would be a 2x2 matrix of distances between `ACG` and `TAT`:
-| | ACG | TAT |
+The distances matrix would be a 2x2 matrix of distances between `ACG` and `TAG`:
+| | ACG | TAG |
 | --- | --- | --- |
 | ACG | 0 | 2 |
-| TAT | 2 | 0 |
+| TAG | 2 | 0 |
 
 The row of the distances matrix corresponding to each index in the original sequence would be:
 
