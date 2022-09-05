@@ -1,4 +1,4 @@
-#include "hamming_impl.hh"
+#include "hamming/hamming_impl.hh"
 #include "tests.hh"
 
 using namespace hamming;

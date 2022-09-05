@@ -2,7 +2,7 @@
 #define HAMMING_TESTS_HH
 
 #include "hamming/hamming.hh"
-#include "hamming_impl.hh"
+#include "hamming/hamming_impl.hh"
 #include <catch2/catch.hpp>
 #include <random>
 #include <vector>

@@ -1,4 +1,4 @@
-#include "distance_sse2.hh"
+#include "hamming/distance_sse2.hh"
 #include <immintrin.h>
 
 namespace hamming {

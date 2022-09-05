@@ -110,9 +110,13 @@ TEST_CASE("two expressions with distance 2", "[hamming]") {
   for (auto &v : expr) {
     auto d = from_stringlist(v);
     REQUIRE(d[{0, 0}] == 0);
+    REQUIRE(distance(v[0], v[0]) == 0);
     REQUIRE(d[{0, 1}] == 2);
+    REQUIRE(distance(v[0], v[1]) == 2);
     REQUIRE(d[{1, 0}] == 2);
+    REQUIRE(distance(v[1], v[0]) == 2);
     REQUIRE(d[{1, 1}] == 0);
+    REQUIRE(distance(v[1], v[1]) == 0);
   }
 }
 
@@ -131,7 +135,8 @@ TEST_CASE("from_fasta single line sequences", "[hamming]") {
       CAPTURE(include_x);
       CAPTURE(remove_duplicates);
       for (int n : {0, 2, 3, 8}) {
-        auto d = from_fasta(tmp_file_name, include_x, remove_duplicates, n);
+        auto d =
+            from_fasta<uint8_t>(tmp_file_name, include_x, remove_duplicates, n);
         REQUIRE(d[{0, 0}] == 0);
         REQUIRE(d[{0, 1}] == 2);
         REQUIRE(d[{1, 0}] == 2);
@@ -164,7 +169,7 @@ TEST_CASE("from_fasta single line sequences with duplicates", "[hamming]") {
   for (int n : {0, 6, 22}) {
     for (bool include_x : {false, true}) {
       CAPTURE(include_x);
-      auto d = from_fasta(tmp_file_name, include_x, true, n);
+      auto d = from_fasta<uint8_t>(tmp_file_name, include_x, true, n);
       REQUIRE(d.nsamples == 3);
       REQUIRE(d.sequence_indices == sequence_indices);
       REQUIRE(d[{0, 0}] == 0);
@@ -199,7 +204,8 @@ TEST_CASE("from_fasta multi-line sequences", "[hamming]") {
     for (bool include_x : {false, true}) {
       CAPTURE(include_x);
       for (int n : {0, 2, 3, 8}) {
-        auto d = from_fasta(tmp_file_name, include_x, remove_duplicates, 2);
+        auto d =
+            from_fasta<uint8_t>(tmp_file_name, include_x, remove_duplicates, 2);
         REQUIRE(d[{0, 0}] == 0);
         REQUIRE(d[{0, 1}] == 2);
         REQUIRE(d[{1, 0}] == 2);
@@ -240,7 +246,7 @@ TEST_CASE("from_csv reproduces correct data", "[hamming]") {
   for (auto &d : data)
     d = make_test_string(201, gen);
 
-  DataSet ref(data);
+  DataSet<uint8_t> ref(data);
   char tmp_file_name[L_tmpnam];
   REQUIRE(std::tmpnam(tmp_file_name) != nullptr);
   ref.dump(std::string(tmp_file_name));
@@ -255,15 +261,16 @@ TEST_CASE("from_csv reproduces correct data", "[hamming]") {
   std::remove(tmp_file_name);
 }
 
-TEST_CASE("distance integer saturates instead of overflowing", "[hamming]") {
-  auto n_max{static_cast<std::size_t>(std::numeric_limits<DistIntType>::max())};
+TEMPLATE_TEST_CASE("distance integer saturates instead of overflowing",
+                   "[hamming]", uint8_t, uint16_t) {
+  auto n_max{static_cast<std::size_t>(std::numeric_limits<TestType>::max())};
   std::mt19937 gen(12345);
   std::vector<std::string> data(2);
   for (auto n : {n_max, n_max + 1, n_max + 99}) {
     CAPTURE(n);
     data[0] = std::string(n, 'A');
     data[1] = std::string(n, 'T');
-    DataSet dataSet(data);
+    DataSet<TestType> dataSet(data);
     REQUIRE(dataSet[{0, 1}] == n_max);
     REQUIRE(dataSet[{1, 0}] == n_max);
   }
@@ -279,7 +286,7 @@ TEST_CASE("from_lower_triangular reproduces correct data", "[hamming]") {
     for (auto &d : data)
       d = make_test_string(24, gen);
 
-    DataSet ref(data);
+    DataSet<uint8_t> ref(data);
     REQUIRE(ref.nsamples == n);
     ref.dump_lower_triangular(std::string(tmp_file_name));
 

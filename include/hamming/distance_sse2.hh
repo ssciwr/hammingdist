@@ -4,7 +4,7 @@
 #include <cstdint>
 #include <vector>
 
-#include "hamming_impl_types.hh"
+#include "hamming/hamming_impl_types.hh"
 
 namespace hamming {
 

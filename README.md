@@ -53,6 +53,48 @@ data.dump_sequence_indices("indices.txt")
 data = hammingdist.from_stringlist(["ACGTACGT", "ACGTAGGT", "ATTTACGT"])
 ```
 
+## Duplicates
+
+When `from_fasta` is called with the option `remove_duplicates=True`, duplicate sequences are removed before constructing the differences matrix.
+
+For example given this set of three input sequences:
+
+| Index | Sequence |
+| ----- | -------- |
+| 0     | ACG      |
+| 1     | ACG      |
+| 2     | TAG      |
+
+The distances matrix would be a 2x2 matrix of distances between `ACG` and `TAT`:
+| | ACG | TAT |
+| --- | --- | --- |
+| ACG | 0 | 2 |
+| TAT | 2 | 0 |
+
+The row of the distances matrix corresponding to each index in the original sequence would be:
+
+| Index | Sequence | Row in distances matrix |
+| ----- | -------- | ----------------------- |
+| 0     | ACG      | 0                       |
+| 1     | ACG      | 0                       |
+| 2     | TAT      | 1                       |
+
+This last column is what is written to disk by `DataSet.dump_sequence_indices`.
+
+It can also be constructed (as a numpy array) without calculating the distances matrix by using `hammingdist.fasta_sequence_indices`
+
+```python
+import hammingdist
+
+sequence_indices = hammingdist.fasta_sequence_indices(fasta_file)
+```
+
+## Large distance values
+
+By default, the elements in the distances matrix returned by `hammingdist.from_fasta` have a maximum value of 255.
+
+For distances larger than this `hammingdist.from_fasta_large` supports distances up to 65535 (but uses twice as much RAM)
+
 ## Distances from reference sequence
 
 The distance of each sequence in a fasta file from a given reference sequence can be calculated using:
