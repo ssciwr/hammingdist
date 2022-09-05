@@ -1,21 +1,6 @@
-#include "hamming_impl.hh"
-#ifdef HAMMING_WITH_SSE2
-#include "distance_sse2.hh"
-#endif
-#ifdef HAMMING_WITH_AVX2
-#include "distance_avx2.hh"
-#endif
-#ifdef HAMMING_WITH_AVX512
-#include "distance_avx512.hh"
-#endif
+#include "hamming/hamming_impl.hh"
 #include <algorithm>
-#include <cpuinfo_x86.h>
-#include <limits>
 #include <stdexcept>
-#ifdef HAMMING_WITH_OPENMP
-#include <omp.h>
-#endif
-#include <iostream>
 namespace hamming {
 
 // bit meaning:
@@ -41,84 +26,17 @@ std::array<GeneBlock, 256> lookupTable(bool include_x) {
   return lookup;
 }
 
-DistIntType safe_int_cast(int x) {
-  if (x > std::numeric_limits<DistIntType>::max()) {
-    return std::numeric_limits<DistIntType>::max();
+void validate_data(const std::vector<std::string> &data) {
+  if (data.empty() || data[0].empty()) {
+    throw std::runtime_error("Error: Empty sequence");
   }
-  return static_cast<DistIntType>(x);
-}
-
-std::vector<DistIntType> distances(std::vector<std::string> &data,
-                                   bool include_x, bool clear_input_data) {
-  std::vector<DistIntType> result((data.size() - 1) * data.size() / 2, 0);
-  auto sparse = to_sparse_data(data, include_x);
-  std::size_t nsamples{data.size()};
-  std::size_t sample_length{data[0].size()};
-
-  // if X is included, we have to use the sparse distance function
-  bool use_sparse = include_x;
-  // otherwise, use heuristic to choose distance function: if < 0.5% of values
-  // differ from reference genome, use sparse distance function
-  if (!include_x) {
-    constexpr double sparse_threshold{0.005};
-    std::size_t n_diff{0};
-    for (const auto &s : sparse) {
-      n_diff += s.size() / 2;
+  auto length{data[0].size()};
+  for (const auto &d : data) {
+    if (d.size() != length) {
+      throw std::runtime_error(
+          "Error: Sequences do not all have the same length");
     }
-    double frac_diff{static_cast<double>(n_diff) /
-                     static_cast<double>(nsamples * sample_length)};
-    use_sparse = frac_diff < sparse_threshold;
   }
-  if (use_sparse) {
-    if (clear_input_data) {
-      data.clear();
-    }
-#ifdef HAMMING_WITH_OPENMP
-#pragma omp parallel for
-#endif
-    for (std::size_t i = 0; i < nsamples; ++i) {
-      std::size_t offset{i * (i - 1) / 2};
-      for (std::size_t j = 0; j < i; ++j) {
-        result[offset + j] =
-            safe_int_cast(distance_sparse(sparse[i], sparse[j]));
-      }
-    }
-    return result;
-  }
-
-  // otherwise use fastest supported dense distance function
-  auto dense = to_dense_data(data);
-  if (clear_input_data) {
-    data.clear();
-  }
-  const auto features = cpu_features::GetX86Info().features;
-  int (*distance_func)(const std::vector<GeneBlock> &a,
-                       const std::vector<GeneBlock> &b) = distance_cpp;
-#ifdef HAMMING_WITH_SSE2
-  if (features.sse2) {
-    distance_func = distance_sse2;
-  }
-#endif
-#ifdef HAMMING_WITH_AVX2
-  if (features.avx2) {
-    distance_func = distance_avx2;
-  }
-#endif
-#ifdef HAMMING_WITH_AVX512
-  if (features.avx512bw) {
-    distance_func = distance_avx512;
-  }
-#endif
-
-#ifdef HAMMING_WITH_OPENMP
-#pragma omp parallel for schedule(static, 1)
-#endif
-  for (std::size_t i = 0; i < nsamples; ++i) {
-    std::size_t offset{i * (i - 1) / 2};
-    for (std::size_t j = 0; j < i; ++j)
-      result[offset + j] = safe_int_cast(distance_func(dense[i], dense[j]));
-  }
-  return result;
 }
 
 int distance_sparse(const SparseData &a, const SparseData &b) {
@@ -165,19 +83,6 @@ int distance_cpp(const std::vector<GeneBlock> &a,
          static_cast<int>((c & mask_gene1) == 0);
   }
   return r;
-}
-
-void validate_data(const std::vector<std::string> &data) {
-  if (data.empty() || data[0].empty()) {
-    throw std::runtime_error("Error: Empty sequence");
-  }
-  auto length{data[0].size()};
-  for (const auto &d : data) {
-    if (d.size() != length) {
-      throw std::runtime_error(
-          "Error: Sequences do not all have the same length");
-    }
-  }
 }
 
 static std::string

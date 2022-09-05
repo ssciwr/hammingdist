@@ -32,7 +32,10 @@ def check_output_sizes(dat, n_in, n_out, tmp_out_file, fasta_sequence_indices=No
         assert np.allclose(indices, fasta_sequence_indices)
 
 
-def test_from_fasta(tmp_path):
+@pytest.mark.parametrize(
+    "from_fasta_func", [hammingdist.from_fasta, hammingdist.from_fasta_large]
+)
+def test_from_fasta(from_fasta_func, tmp_path):
     sequences = [
         "ACGTGTCGTGTCGACGTGTCG",
         "ACGTGTCGTTTCGACGAGTCG",

@@ -1,5 +1,4 @@
-#include "distance_avx2.hh"
-#include "hamming_impl_types.hh"
+#include "hamming/distance_avx2.hh"
 #include <immintrin.h>
 
 namespace hamming {

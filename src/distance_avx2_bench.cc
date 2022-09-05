@@ -1,7 +1,7 @@
 #include "bench.hh"
-#include "distance_avx2.hh"
+#include "hamming/distance_avx2.hh"
 #include "hamming/hamming.hh"
-#include "hamming_impl.hh"
+#include "hamming/hamming_impl.hh"
 #ifdef HAMMING_WITH_OPENMP
 #include <omp.h>
 #endif
