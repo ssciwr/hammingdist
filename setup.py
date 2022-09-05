@@ -93,7 +93,7 @@ with open(path.join(path.abspath(path.dirname(__file__)), "README.md")) as f:
 
 setup(
     name="hammingdist",
-    version="0.16.0",
+    version="0.17.0",
     author="Dominic Kempf, Liam Keegan",
     author_email="ssc@iwr.uni-heidelberg.de",
     description="A fast tool to calculate Hamming distances",
@@ -114,6 +114,7 @@ setup(
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
         "Programming Language :: Python :: Implementation :: CPython",
         "Programming Language :: Python :: Implementation :: PyPy",
         "License :: OSI Approved :: MIT License",

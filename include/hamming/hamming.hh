@@ -19,6 +19,8 @@ std::vector<ReferenceDistIntType>
 fasta_reference_distances(const std::string &reference_sequence,
                           const std::string &fasta_file,
                           bool include_x = false);
+std::vector<std::size_t> fasta_sequence_indices(const std::string &fasta_file,
+                                                std::size_t n = 0);
 
 } // namespace hamming
 

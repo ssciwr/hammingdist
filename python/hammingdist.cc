@@ -65,6 +65,16 @@ PYBIND11_MODULE(hammingdist, m) {
       py::arg("include_x") = false,
       "Calculates the distance of each sequence in the fasta file from the "
       "supplied reference sequence");
+  m.def(
+      "fasta_sequence_indices",
+      [](const std::string &fasta_file, std::size_t n) {
+        return as_pyarray(fasta_sequence_indices(fasta_file, n));
+      },
+      py::arg("fasta_file"), py::arg("n") = 0,
+      "Returns the same output as dump_sequence_indices() but without "
+      "constructing the distances matrix."
+      "For each genome in the input fasta file it gives the index of the "
+      "corresponding row in the distances matrix which excludes duplicates");
 }
 
 } // namespace hamming

@@ -10,7 +10,7 @@ def write_fasta_file(filename, sequences):
             f.write(f">seq{i}\n{seq}\n")
 
 
-def check_output_sizes(dat, n_in, n_out, tmp_out_file):
+def check_output_sizes(dat, n_in, n_out, tmp_out_file, fasta_sequence_indices=None):
     dat.dump(tmp_out_file)
     dump = np.loadtxt(tmp_out_file, delimiter=",")
     assert len(dump) == n_out
@@ -28,6 +28,8 @@ def check_output_sizes(dat, n_in, n_out, tmp_out_file):
     indices = np.loadtxt(tmp_out_file, delimiter=",")
     assert len(indices) == n_in
     assert indices[0] == 0
+    if fasta_sequence_indices is not None:
+        assert np.allclose(indices, fasta_sequence_indices)
 
 
 def test_from_fasta(tmp_path):
@@ -52,22 +54,27 @@ def test_from_fasta(tmp_path):
     data = hammingdist.from_fasta(fasta_file, include_x=True)
     check_output_sizes(data, 6, 6, output_file)
 
+    fasta_sequence_indices = hammingdist.fasta_sequence_indices(fasta_file)
     data = hammingdist.from_fasta(fasta_file, remove_duplicates=True)
-    check_output_sizes(data, 6, 4, output_file)
+    check_output_sizes(data, 6, 4, output_file, fasta_sequence_indices)
 
+    fasta_sequence_indices = hammingdist.fasta_sequence_indices(fasta_file)
     data = hammingdist.from_fasta(fasta_file, remove_duplicates=True, include_x=True)
-    check_output_sizes(data, 6, 4, output_file)
+    check_output_sizes(data, 6, 4, output_file, fasta_sequence_indices)
 
+    fasta_sequence_indices = hammingdist.fasta_sequence_indices(fasta_file, n=2)
     data = hammingdist.from_fasta(fasta_file, include_x=True, n=2)
-    check_output_sizes(data, 2, 2, output_file)
+    check_output_sizes(data, 2, 2, output_file, fasta_sequence_indices)
 
+    fasta_sequence_indices = hammingdist.fasta_sequence_indices(fasta_file, n=3)
     data = hammingdist.from_fasta(fasta_file, remove_duplicates=True, n=3)
-    check_output_sizes(data, 3, 2, output_file)
+    check_output_sizes(data, 3, 2, output_file, fasta_sequence_indices)
 
+    fasta_sequence_indices = hammingdist.fasta_sequence_indices(fasta_file, n=5)
     data = hammingdist.from_fasta(
         fasta_file, remove_duplicates=True, n=5, include_x=True
     )
-    check_output_sizes(data, 5, 3, output_file)
+    check_output_sizes(data, 5, 3, output_file, fasta_sequence_indices)
 
 
 @pytest.mark.parametrize(
