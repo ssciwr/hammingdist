@@ -5,7 +5,7 @@ target_link_libraries(hamming PUBLIC CpuFeature::cpu_features)
 if(HAMMING_WITH_OPENMP)
   find_package(OpenMP REQUIRED)
   target_compile_definitions(hamming PUBLIC HAMMING_WITH_OPENMP)
-  target_link_libraries(hamming PRIVATE OpenMP::OpenMP_CXX)
+  target_link_libraries(hamming PUBLIC OpenMP::OpenMP_CXX)
 endif()
 
 # compile optional SIMD code as separate libraries which can be used at runtime
