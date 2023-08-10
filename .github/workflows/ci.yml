@@ -7,6 +7,10 @@ on:
   pull_request:
   workflow_dispatch:
 
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   BUILD_TYPE: Release
   HAMMING_WITH_AVX2: OFF
@@ -20,16 +24,22 @@ jobs:
 
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        include:
+          - os: ubuntu-latest
+            open-mp: "ON"
+          - os: macos-latest
+            open-mp: "OFF"
+          - os: windows-latest
+            open-mp: "OFF"
 
     steps:
       - uses: actions/checkout@v3
         with:
           submodules: "recursive"
 
-      - name: enable openmp on linux
-        run: echo "HAMMING_WITH_OPENMP=ON" >> $GITHUB_ENV
-        if: runner.os == 'Linux'
+      - uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
 
       - name: make build directory
         run: cmake -E make_directory ${{runner.workspace}}/build
@@ -37,7 +47,7 @@ jobs:
       - name: configure cmake
         shell: bash
         working-directory: ${{runner.workspace}}/build
-        run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DBUILD_TESTING=ON -DHAMMING_BUILD_BENCHMARKS=ON -DHAMMING_WITH_SSE2=ON -DHAMMING_WITH_AVX2=$HAMMING_WITH_AVX2 -DHAMMING_WITH_AVX512=$HAMMING_WITH_AVX512 -DHAMMING_BUILD_PYTHON=ON -DHAMMING_WITH_OPENMP=$HAMMING_WITH_OPENMP
+        run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DBUILD_TESTING=ON -DHAMMING_BUILD_BENCHMARKS=ON -DHAMMING_WITH_SSE2=ON -DHAMMING_WITH_AVX2=$HAMMING_WITH_AVX2 -DHAMMING_WITH_AVX512=$HAMMING_WITH_AVX512 -DHAMMING_BUILD_PYTHON=ON -DHAMMING_WITH_OPENMP=${{ matrix.open-mp }}
 
       - name: build
         shell: bash

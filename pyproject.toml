@@ -1,0 +1,55 @@
+[build-system]
+requires = ["scikit-build-core"]
+build-backend = "scikit_build_core.build"
+
+[project]
+name = "hammingdist"
+version = "0.20.0"
+description = "A fast tool to calculate Hamming distances"
+readme = "README.md"
+license = {text = "MIT"}
+authors=[{name="Liam Keegan", email="ssc@iwr.uni-heidelberg.de"}, {name="Dominic Kempf", email="ssc@iwr.uni-heidelberg.de"}]
+requires-python = ">=3.7"
+classifiers=[
+    "Topic :: Scientific/Engineering :: Bio-Informatics",
+    "License :: OSI Approved :: MIT License",
+    "Intended Audience :: Science/Research",
+    "Intended Audience :: Education",
+    "Programming Language :: C++",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Programming Language :: Python :: Implementation :: PyPy",
+    "Operating System :: MacOS :: MacOS X",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: POSIX :: Linux",
+]
+
+[project.urls]
+Github = "https://github.com/ssciwr/hammingdist"
+Issues = "https://github.com/ssciwr/hammingdist/issues"
+
+[project.optional-dependencies]
+test = ["pytest", "numpy"]
+
+[tool.scikit-build.cmake.define]
+BUILD_TESTING = "OFF"
+HAMMING_BUILD_BENCHMARKS = "OFF"
+HAMMING_BUILD_PYTHON = "ON"
+
+[tool.cibuildwheel]
+skip = "*-manylinux_i686"
+# skip tests for python 3.12 until numpy 1.26 is available
+test-skip = "pp* *-musllinux* cp312-*"
+test-extras = "test"
+test-command = "pytest {project}/python/tests -v"
+environment = { BLAS="None", LAPACK="None", ATLAS="None" }
+build-verbosity = 3
+
+[tool.cibuildwheel.linux]
+environment = { CMAKE_ARGS="-DHAMMING_WITH_OPENMP=ON" }

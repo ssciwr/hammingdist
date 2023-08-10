@@ -9,17 +9,14 @@ on:
   release:
     types: [published]
 
+concurrency:
+  group: wheels-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build-wheels:
     name: Build wheels on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
-    env:
-      CIBW_TEST_REQUIRES: "pytest numpy"
-      CIBW_TEST_COMMAND: "pytest {project}/python/tests -v"
-      CIBW_TEST_SKIP: "pp* *-musllinux*"
-      CIBW_ENVIRONMENT: "BLAS=None LAPACK=None ATLAS=None"
-      CIBW_SKIP: "*-manylinux_i686"
-      CIBW_BUILD_VERBOSITY: 3
 
     strategy:
       matrix:
@@ -30,11 +27,7 @@ jobs:
         with:
           submodules: "recursive"
 
-      - name: enable openmp on linux
-        run: echo 'CIBW_ENVIRONMENT=HAMMING_WITH_OPENMP=ON' >> $GITHUB_ENV
-        if: runner.os == 'Linux'
-
-      - uses: pypa/cibuildwheel@v2.14
+      - uses: pypa/cibuildwheel@v2.15
 
       - uses: actions/upload-artifact@v3
         with:
