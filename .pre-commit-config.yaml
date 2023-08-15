@@ -33,3 +33,6 @@ repos:
     hooks:
       - id: check-github-workflows
       - id: check-readthedocs
+
+ci:
+  autoupdate_schedule: quarterly
