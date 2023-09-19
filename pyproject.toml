@@ -44,8 +44,7 @@ HAMMING_BUILD_PYTHON = "ON"
 
 [tool.cibuildwheel]
 skip = "*-manylinux_i686"
-# skip tests for python 3.12 until numpy 1.26 is available
-test-skip = "pp* *-musllinux* cp312-*"
+test-skip = "pp* *-musllinux*"
 test-extras = "test"
 test-command = "pytest {project}/python/tests -v"
 environment = { BLAS="None", LAPACK="None", ATLAS="None" }
