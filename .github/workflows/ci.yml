@@ -33,13 +33,14 @@ jobs:
             open-mp: "OFF"
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           submodules: "recursive"
 
       - uses: actions/setup-python@v4
         with:
-          python-version: "3.11"
+          python-version: "3.12"
+          allow-prereleases: true
 
       - name: make build directory
         run: cmake -E make_directory ${{runner.workspace}}/build
