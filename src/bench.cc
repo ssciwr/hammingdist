@@ -29,10 +29,11 @@ void randomize_n(std::string &str, std::size_t n, std::mt19937 &gen) {
   }
 }
 
-std::vector<std::string> make_stringlist(int64_t n, std::mt19937 &gen) {
+std::vector<std::string> make_stringlist(int64_t n, int64_t n_samples,
+                                         std::mt19937 &gen) {
   std::vector<std::string> v;
-  v.reserve(n);
-  for (int64_t row = 0; row < n; ++row) {
+  v.reserve(n_samples);
+  for (int64_t row = 0; row < n_samples; ++row) {
     v.push_back(make_string(n, gen));
   }
   return v;

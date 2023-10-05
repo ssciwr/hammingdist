@@ -1,0 +1,8 @@
+# time in ns to calculate distance between two genomes of length 32k:
+# note: fairly approximate numbers - see comment for origin of each one
+
+"Python"  54000  # (very rough guess: original dataset was I think ~40k genomes, they said it took many hours to run, so assuming 40k*20k distances in 12 hours we get (12*60*60*1e9)/(40000*20000) ns per distance calc)
+"C++"  3266  # c++ (bench_distance_cpp/32768 benchmark result on hgscomp01)
+"C++\nAVX512"  835  # c++/SIMD-AVX512 (bench_distance_avx512/32768 benchmark result on hgscomp01)
+"C++\nAVX512\nOpenMP\n(52 cores)"  42  # c++/SIMD-AVX512/OpenMP 52-cores (here I just divided above value by 19.7x which was the relative speed-up of a full from_fasta calc using 5000 genomes from the real data with 52 vs 1 core on hgscomp01)
+"C++\nCUDA\n(A100 GPU)" 11 # for 100k genomes from_fasta_to_lower_triangular took 60s, divided by 100000*(100000-1)/2 number of distance calcs, multiplied by 1e9 for s -> ns

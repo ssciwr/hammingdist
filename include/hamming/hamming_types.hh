@@ -1,5 +1,4 @@
-#ifndef _HAMMING_TYPES_HH
-#define _HAMMING_TYPES_HH
+#pragma once
 
 #include <algorithm>
 #include <array>
@@ -15,5 +14,3 @@ using ReferenceDistIntType = uint32_t;
 using DefaultDistIntType = uint8_t;
 
 } // namespace hamming
-
-#endif

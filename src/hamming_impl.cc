@@ -1,6 +1,23 @@
 #include "hamming/hamming_impl.hh"
 #include <algorithm>
+#if !(defined(__aarch64__) || defined(_M_ARM64))
+#include <cpuinfo_x86.h>
+#endif
 #include <stdexcept>
+#include <unordered_map>
+#ifdef HAMMING_WITH_SSE2
+#include "hamming/distance_sse2.hh"
+#endif
+#ifdef HAMMING_WITH_AVX2
+#include "hamming/distance_avx2.hh"
+#endif
+#ifdef HAMMING_WITH_AVX512
+#include "hamming/distance_avx512.hh"
+#endif
+#ifdef HAMMING_WITH_NEON
+#include "hamming/distance_neon.hh"
+#endif
+
 namespace hamming {
 
 // bit meaning:
@@ -24,6 +41,40 @@ std::array<GeneBlock, 256> lookupTable(bool include_x) {
   }
 
   return lookup;
+}
+
+distance_func_ptr get_fastest_supported_distance_func() {
+  std::string simd_str = "no";
+  distance_func_ptr distance_func{distance_cpp};
+#if defined(__aarch64__) || defined(_M_ARM64)
+#ifdef HAMMING_WITH_NEON
+  distance_func = distance_neon;
+  simd_str = "NEON";
+#endif
+#else
+  const auto features = cpu_features::GetX86Info().features;
+#ifdef HAMMING_WITH_SSE2
+  if (features.sse2) {
+    distance_func = distance_sse2;
+    simd_str = "SSE2";
+  }
+#endif
+#ifdef HAMMING_WITH_AVX2
+  if (features.avx2) {
+    distance_func = distance_avx2;
+    simd_str = "AVX2";
+  }
+#endif
+#ifdef HAMMING_WITH_AVX512
+  if (features.avx512bw) {
+    distance_func = distance_avx512;
+    simd_str = "AVX512";
+  }
+#endif
+#endif
+  std::cout << "# hammingdist :: Using CPU with " << simd_str
+            << " SIMD extensions..." << std::endl;
+  return distance_func;
 }
 
 void validate_data(const std::vector<std::string> &data) {
@@ -143,11 +194,55 @@ to_dense_data(const std::vector<std::string> &data) {
   return dense;
 }
 
+std::pair<std::vector<std::string>, std::vector<std::size_t>>
+read_fasta(const std::string &filename, bool remove_duplicates, std::size_t n) {
+  std::pair<std::vector<std::string>, std::vector<std::size_t>>
+      data_and_sequence_indices;
+  auto &[data, sequence_indices] = data_and_sequence_indices;
+  data.reserve(n);
+  if (n == 0) {
+    n = std::numeric_limits<std::size_t>::max();
+    data.reserve(65536);
+  }
+  std::unordered_map<std::string, std::size_t> map_seq_to_index;
+  // Initializing the stream
+  std::ifstream stream(filename);
+  std::size_t count = 0;
+  std::size_t count_unique = 0;
+  std::string line;
+  // skip first header
+  std::getline(stream, line);
+  while (count < n && !stream.eof()) {
+    std::string seq{};
+    while (std::getline(stream, line) && line[0] != '>') {
+      seq.append(line);
+    }
+    if (remove_duplicates) {
+      auto result = map_seq_to_index.emplace(std::move(seq), count_unique);
+      if (result.second) {
+        ++count_unique;
+      }
+      sequence_indices.push_back(result.first->second);
+    } else {
+      data.push_back(std::move(seq));
+    }
+    ++count;
+  }
+  if (remove_duplicates) {
+    // copy each unique sequence to the vector of strings
+    data.resize(count_unique);
+    for (auto &key_value_pair : map_seq_to_index) {
+      data[key_value_pair.second] = key_value_pair.first;
+    }
+  }
+  return data_and_sequence_indices;
+}
+
 std::vector<GeneBlock> from_string(const std::string &str) {
   alignas(16) std::vector<GeneBlock> r;
   auto lookup = lookupTable();
   std::size_t n_full_blocks{str.size() / 2};
-  r.reserve(1 + n_full_blocks);
+  r.reserve(1 + n_full_blocks + 3);
   auto iter_str = str.cbegin();
   for (std::size_t i_block = 0; i_block < n_full_blocks; ++i_block) {
     r.push_back(lookup[*iter_str] & mask_gene0);
@@ -160,6 +255,11 @@ std::vector<GeneBlock> from_string(const std::string &str) {
     r.push_back(lookup[*iter_str] & mask_gene0);
     r.back() |= (lookup['-'] & mask_gene1);
   }
+  // pad to ensure 64-bit alignment
+  while (8 * (r.size() / 8) != r.size()) {
+    r.push_back(lookup['-']);
+  }
+
   return r;
 }
 

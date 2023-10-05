@@ -1,8 +1,8 @@
-cmake_minimum_required(VERSION 3.11..3.27)
+cmake_minimum_required(VERSION 3.23..3.27)
 
 project(
   hammingdist
-  VERSION 0.21.0
+  VERSION 1.0.0
   LANGUAGES CXX)
 
 include(CTest)
@@ -38,6 +38,14 @@ set(HAMMING_WITH_AVX512
 set(HAMMING_WITH_NEON
     no
     CACHE BOOL "Enable NEON optimized code on Arm64 CPUs")
+
+set(HAMMING_WITH_CUDA
+    no
+    CACHE BOOL "Build with CUDA support (nvidia gpu)")
+
+if(HAMMING_WITH_CUDA)
+  enable_language(CUDA)
+endif()
 
 # Add git submodules
 add_subdirectory(ext)

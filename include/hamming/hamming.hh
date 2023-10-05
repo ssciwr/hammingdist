@@ -1,13 +1,12 @@
-#ifndef _HAMMING_HH
-#define _HAMMING_HH
+#pragma once
 
 #include "hamming/hamming_impl.hh"
 #include "hamming/hamming_types.hh"
+#include "hamming/hamming_utils.hh"
 #include <cmath>
 #include <fstream>
 #include <sstream>
 #include <string>
-#include <unordered_map>
 #include <vector>
 
 namespace hamming {
@@ -19,10 +18,11 @@ inline std::size_t uint_sqrt(std::size_t x) {
 template <typename DistIntType> struct DataSet {
   explicit DataSet(std::vector<std::string> &data, bool include_x = false,
                    bool clear_input_data = false,
-                   std::vector<std::size_t> &&indices = {})
+                   std::vector<std::size_t> &&indices = {},
+                   bool use_gpu = false)
       : nsamples(data.size()), sequence_indices(std::move(indices)) {
     validate_data(data);
-    result = distances<DistIntType>(data, include_x, clear_input_data);
+    result = distances<DistIntType>(data, include_x, clear_input_data, use_gpu);
   }
 
   explicit DataSet(const std::string &filename) {
@@ -67,35 +67,7 @@ template <typename DistIntType> struct DataSet {
   }
 
   void dump_lower_triangular(const std::string &filename) {
-    std::ofstream stream(filename);
-#ifdef HAMMING_WITH_OPENMP
-    std::size_t block_size = 200;
-#pragma omp parallel for ordered schedule(static, 1)
-    for (std::size_t i_start = 1; i_start < nsamples; i_start += block_size) {
-      std::stringstream line;
-      std::size_t i_end = i_start + block_size;
-      if (i_end > nsamples) {
-        i_end = nsamples;
-      }
-      for (std::size_t i = i_start; i < i_end; ++i) {
-        std::size_t offset{i * (i - 1) / 2};
-        for (std::size_t j = 0; j + 1 < i; ++j) {
-          line << static_cast<int>(result[offset + j]) << ",";
-        }
-        line << static_cast<int>(result[offset + i - 1]) << "\n";
-      }
-#pragma omp ordered
-      stream << line.str();
-    }
-#else
-    std::size_t k = 0;
-    for (std::size_t i = 1; i < nsamples; ++i) {
-      for (std::size_t j = 0; j + 1 < i; ++j) {
-        stream << static_cast<int>(result[k++]) << ",";
-      }
-      stream << static_cast<int>(result[k++]) << "\n";
-    }
-#endif
+    write_lower_triangular(filename, result);
   }
 
   void dump_sequence_indices(const std::string &filename) {
@@ -127,67 +99,52 @@ template <typename DistIntType> struct DataSet {
   std::vector<std::size_t> sequence_indices{};
 };
 
-DataSet<DefaultDistIntType> from_stringlist(std::vector<std::string> &data);
+DataSet<DefaultDistIntType> from_stringlist(std::vector<std::string> &data,
+                                            bool include_x = false,
+                                            bool use_gpu = false);
 
 DataSet<DefaultDistIntType> from_csv(const std::string &filename);
 
-DataSet<DefaultDistIntType> from_lower_triangular(const std::string &filename);
+template <typename DistIntType>
+DataSet<DistIntType> from_lower_triangular(const std::string &filename) {
+  std::vector<DistIntType> distances;
+  std::ifstream stream(filename);
+  std::string line;
+  while (std::getline(stream, line)) {
+    std::istringstream s(line);
+    std::string d;
+    while (s.good()) {
+      std::getline(s, d, ',');
+      distances.push_back(safe_int_cast<DistIntType>(std::stoi(d)));
+    }
+  }
+  return DataSet(std::move(distances));
+}
 
 template <typename DistIntType>
-DataSet<DistIntType>
-from_fasta(const std::string &filename, bool include_x = false,
-           bool remove_duplicates = false, std::size_t n = 0) {
-  std::vector<std::string> data;
-  data.reserve(n);
-  if (n == 0) {
-    n = std::numeric_limits<std::size_t>::max();
-    data.reserve(65536);
-  }
-  std::unordered_map<std::string, std::size_t> map_seq_to_index;
-  std::vector<std::size_t> sequence_indices{};
-  // Initializing the stream
-  std::ifstream stream(filename);
-  std::size_t count = 0;
-  std::size_t count_unique = 0;
-  std::string line;
-  // skip first header
-  std::getline(stream, line);
-  while (count < n && !stream.eof()) {
-    std::string seq{};
-    while (std::getline(stream, line) && line[0] != '>') {
-      seq.append(line);
-    }
-    if (remove_duplicates) {
-      auto result = map_seq_to_index.emplace(std::move(seq), count_unique);
-      if (result.second) {
-        ++count_unique;
-      }
-      sequence_indices.push_back(result.first->second);
-    } else {
-      data.push_back(std::move(seq));
-    }
-    ++count;
-  }
-  if (remove_duplicates) {
-    // copy each unique sequence to the vector of strings
-    data.resize(count_unique);
-    for (auto &key_value_pair : map_seq_to_index) {
-      data[key_value_pair.second] = key_value_pair.first;
-    }
-  }
+DataSet<DistIntType> from_fasta(const std::string &filename,
+                                bool include_x = false,
+                                bool remove_duplicates = false,
+                                std::size_t n = 0, bool use_gpu = false) {
+  auto [data, sequence_indices] = read_fasta(filename, remove_duplicates, n);
   return DataSet<DistIntType>(data, include_x, true,
-                              std::move(sequence_indices));
+                              std::move(sequence_indices), use_gpu);
 }
+
+void from_fasta_to_lower_triangular(const std::string &input_filename,
+                                    const std::string &output_filename,
+                                    bool remove_duplicates = false,
+                                    std::size_t n = 0, bool use_gpu = false);
 
 ReferenceDistIntType distance(const std::string &seq0, const std::string &seq1,
                               bool include_x = false);
+
 std::vector<ReferenceDistIntType>
 fasta_reference_distances(const std::string &reference_sequence,
                           const std::string &fasta_file,
                           bool include_x = false);
+
 std::vector<std::size_t> fasta_sequence_indices(const std::string &fasta_file,
                                                 std::size_t n = 0);
 
 } // namespace hamming
-
-#endif

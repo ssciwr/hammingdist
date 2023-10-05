@@ -7,34 +7,45 @@
 #include <fstream>
 #include <iostream>
 #include <limits>
-#include <sstream>
 #include <string>
 #include <unordered_map>
 #include <vector>
 
 namespace hamming {
 
-DataSet<DefaultDistIntType> from_stringlist(std::vector<std::string> &data) {
-  return DataSet<DefaultDistIntType>(data);
+DataSet<DefaultDistIntType> from_stringlist(std::vector<std::string> &data,
+                                            bool include_x, bool use_gpu) {
+  return DataSet<DefaultDistIntType>(data, include_x, false, {}, use_gpu);
 }
 
 DataSet<DefaultDistIntType> from_csv(const std::string &filename) {
   return DataSet<DefaultDistIntType>(filename);
 }
 
-DataSet<DefaultDistIntType> from_lower_triangular(const std::string &filename) {
-  std::vector<DefaultDistIntType> distances;
-  std::ifstream stream(filename);
-  std::string line;
-  while (std::getline(stream, line)) {
-    std::istringstream s(line);
-    std::string d;
-    while (s.good()) {
-      std::getline(s, d, ',');
-      distances.push_back(safe_int_cast<DefaultDistIntType>(std::stoi(d)));
-    }
+void from_fasta_to_lower_triangular(const std::string &input_filename,
+                                    const std::string &output_filename,
+                                    bool remove_duplicates, std::size_t n,
+                                    bool use_gpu) {
+  if (use_gpu) {
+    std::cout << "# hammingdist :: Using GPU..." << std::endl;
   }
-  return DataSet(std::move(distances));
+  auto start_time = std::chrono::high_resolution_clock::now();
+  auto [data, sequence_indices] =
+      read_fasta(input_filename, remove_duplicates, n);
+  auto dense_data = to_dense_data(data);
+  std::cout << "# hammingdist :: ...pre-processing completed in "
+            << std::chrono::duration_cast<std::chrono::milliseconds>(
+                   std::chrono::high_resolution_clock::now() - start_time)
+                   .count()
+            << " ms..." << std::endl;
+#ifdef HAMMING_WITH_CUDA
+  if (use_gpu) {
+    distances_cuda_to_lower_triangular(dense_data, output_filename);
+    return;
+  }
+#endif
+  throw std::runtime_error(
+      "from_fasta_to_lower_triangular is currently only available on GPU");
 }
 
 ReferenceDistIntType distance(const std::string &seq0, const std::string &seq1,
