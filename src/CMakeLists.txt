@@ -1,7 +1,7 @@
 # Build hamming library
 add_library(hamming STATIC hamming.cc hamming_impl.cc)
 target_include_directories(hamming PUBLIC ../include)
-target_link_libraries(hamming PUBLIC CpuFeature::cpu_features)
+target_link_libraries(hamming PUBLIC CpuFeatures::cpu_features)
 if(HAMMING_WITH_OPENMP)
   find_package(OpenMP REQUIRED)
   target_compile_definitions(hamming PUBLIC HAMMING_WITH_OPENMP)
@@ -50,7 +50,7 @@ if(HAMMING_BUILD_BENCHMARKS)
     target_link_libraries(bench PRIVATE distance_avx512)
   endif()
   target_link_libraries(bench PRIVATE hamming benchmark::benchmark
-                                      CpuFeature::cpu_features)
+                                      CpuFeatures::cpu_features)
 endif()
 
 # Build tests
@@ -70,6 +70,6 @@ if(BUILD_TESTING)
     target_link_libraries(tests PRIVATE distance_avx512)
   endif()
   target_link_libraries(tests PRIVATE hamming Catch2::Catch2
-                                      CpuFeature::cpu_features)
+                                      CpuFeatures::cpu_features)
   catch_discover_tests(tests)
 endif()
