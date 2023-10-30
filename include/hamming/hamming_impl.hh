@@ -4,8 +4,8 @@
 #include <array>
 #if defined(__x86_64__) || defined(_M_X64)
 #include <cpuinfo_x86.h>
-#elif __arm__
-#include <cpuinfo_arm.h>
+#elif defined(__aarch64__) || defined(_M_ARM64)
+#include <cpuinfo_aarch64.h>
 #endif
 #include <cstdint>
 #include <limits>
@@ -99,8 +99,8 @@ std::vector<DistIntType> distances(std::vector<std::string> &data,
   }
 #if defined(__x86_64__) || defined(_M_X64)
   const auto features = cpu_features::GetX86Info().features;
-#elif __arm__
-  const auto features = cpu_features::GetArmInfo().features;
+#elif defined(__aarch64__) || defined(_M_ARM64)
+  const auto features = cpu_features::GetAarch64Info().features;
 #endif
 
   int (*distance_func)(const std::vector<GeneBlock> &a,
