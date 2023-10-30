@@ -29,6 +29,8 @@ jobs:
             open-mp: "ON"
           - os: macos-latest
             open-mp: "OFF"
+          - os: macos-arm64-ssc
+            open-mp: "OFF"
           - os: windows-latest
             open-mp: "OFF"
 
