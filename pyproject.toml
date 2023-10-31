@@ -43,7 +43,7 @@ HAMMING_BUILD_BENCHMARKS = "OFF"
 HAMMING_BUILD_PYTHON = "ON"
 
 [tool.cibuildwheel]
-skip = "*-manylinux_i686"
+skip = "*-manylinux_i686 cp38-macosx_arm64"
 test-skip = "pp* *-musllinux*"
 test-extras = "test"
 test-command = "pytest {project}/python/tests -v"
@@ -52,3 +52,7 @@ build-verbosity = 3
 
 [tool.cibuildwheel.linux]
 environment = { CMAKE_ARGS="-DHAMMING_WITH_OPENMP=ON" }
+
+[[tool.cibuildwheel.overrides]]
+select = "*-macosx_arm64*"
+environment = { CMAKE_ARGS="-DHAMMING_WITH_SSE2=OFF -DHAMMING_WITH_AVX2=OFF -DHAMMING_WITH_AVX512=OFF" }

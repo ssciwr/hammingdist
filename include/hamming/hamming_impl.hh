@@ -2,7 +2,11 @@
 #define _HAMMING_IMPL_HH
 
 #include <array>
+#if defined(__aarch64__) || defined(_M_ARM64)
+#include <cpuinfo_aarch64.h>
+#else
 #include <cpuinfo_x86.h>
+#endif
 #include <cstdint>
 #include <limits>
 #include <string>
@@ -93,9 +97,15 @@ std::vector<DistIntType> distances(std::vector<std::string> &data,
   if (clear_input_data) {
     data.clear();
   }
-  const auto features = cpu_features::GetX86Info().features;
   int (*distance_func)(const std::vector<GeneBlock> &a,
                        const std::vector<GeneBlock> &b) = distance_cpp;
+
+#if defined(__aarch64__) || defined(_M_ARM64)
+  const auto features = cpu_features::GetAarch64Info().features;
+#else
+  const auto features = cpu_features::GetX86Info().features;
+#endif
+
 #ifdef HAMMING_WITH_SSE2
   if (features.sse2) {
     distance_func = distance_sse2;
