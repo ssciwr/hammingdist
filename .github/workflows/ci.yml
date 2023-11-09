@@ -28,12 +28,16 @@ jobs:
         include:
           - os: ubuntu-latest
             open-mp: "ON"
+            neon: "OFF"
           - os: macos-latest
             open-mp: "OFF"
+            neon: "OFF"
           - os: macos-arm64-ssc
             open-mp: "OFF"
+            neon: "ON"
           - os: windows-latest
             open-mp: "OFF"
+            neon: "OFF"
 
     steps:
       - uses: actions/checkout@v4
@@ -51,7 +55,7 @@ jobs:
       - name: configure cmake
         shell: bash
         working-directory: ${{runner.workspace}}/build
-        run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DBUILD_TESTING=ON -DHAMMING_BUILD_BENCHMARKS=ON -DHAMMING_WITH_SSE2=$HAMMING_WITH_SSE2 -DHAMMING_WITH_AVX2=$HAMMING_WITH_AVX2 -DHAMMING_WITH_AVX512=$HAMMING_WITH_AVX512 -DHAMMING_BUILD_PYTHON=ON -DHAMMING_WITH_OPENMP=${{ matrix.open-mp }}
+        run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DBUILD_TESTING=ON -DHAMMING_BUILD_BENCHMARKS=ON -DHAMMING_WITH_SSE2=$HAMMING_WITH_SSE2 -DHAMMING_WITH_AVX2=$HAMMING_WITH_AVX2 -DHAMMING_WITH_AVX512=$HAMMING_WITH_AVX512 -DHAMMING_WITH_NEON=${{ matrix.neon }} -DHAMMING_BUILD_PYTHON=ON -DHAMMING_WITH_OPENMP=${{ matrix.open-mp }}
 
       - name: build
         shell: bash
