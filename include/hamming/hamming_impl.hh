@@ -2,9 +2,7 @@
 #define _HAMMING_IMPL_HH
 
 #include <array>
-#if defined(__aarch64__) || defined(_M_ARM64)
-#include <cpuinfo_aarch64.h>
-#else
+#if !(defined(__aarch64__) || defined(_M_ARM64))
 #include <cpuinfo_x86.h>
 #endif
 #include <cstdint>
@@ -13,6 +11,9 @@
 #include <vector>
 #ifdef HAMMING_WITH_OPENMP
 #include <omp.h>
+#endif
+#ifdef HAMMING_WITH_NEON
+#include "hamming/distance_neon.hh"
 #endif
 #ifdef HAMMING_WITH_SSE2
 #include "hamming/distance_sse2.hh"
@@ -101,11 +102,11 @@ std::vector<DistIntType> distances(std::vector<std::string> &data,
                        const std::vector<GeneBlock> &b) = distance_cpp;
 
 #if defined(__aarch64__) || defined(_M_ARM64)
-  const auto features = cpu_features::GetAarch64Info().features;
+#ifdef HAMMING_WITH_NEON
+  distance_func = distance_neon;
+#endif
 #else
   const auto features = cpu_features::GetX86Info().features;
-#endif
-
 #ifdef HAMMING_WITH_SSE2
   if (features.sse2) {
     distance_func = distance_sse2;
@@ -120,6 +121,7 @@ std::vector<DistIntType> distances(std::vector<std::string> &data,
   if (features.avx512bw) {
     distance_func = distance_avx512;
   }
+#endif
 #endif
 
 #ifdef HAMMING_WITH_OPENMP
