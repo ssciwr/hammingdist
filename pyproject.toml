@@ -4,7 +4,7 @@ build-backend = "scikit_build_core.build"
 
 [project]
 name = "hammingdist"
-version = "0.20.0"
+version = "0.21.0"
 description = "A fast tool to calculate Hamming distances"
 readme = "README.md"
 license = {text = "MIT"}
