@@ -33,8 +33,11 @@ PYBIND11_MODULE(hammingdist, m) {
            "Dump distances matrix in csv format")
       .def("dump_lower_triangular",
            &DataSet<DefaultDistIntType>::dump_lower_triangular,
+           py::arg("filename"),
+           py::arg("cutoff") = std::numeric_limits<int>::max(),
            "Dump distances matrix in lower triangular format (comma-delimited, "
-           "row-major)")
+           "row-major). If a cutoff is provided, any distances greater than "
+           "the cutoff will be omitted from the output file.")
       .def("dump_sequence_indices",
            &DataSet<DefaultDistIntType>::dump_sequence_indices,
            "Dump row index in distances matrix for each input sequence")
@@ -45,8 +48,11 @@ PYBIND11_MODULE(hammingdist, m) {
       .def("dump", &DataSet<uint16_t>::dump,
            "Dump distances matrix in csv format")
       .def("dump_lower_triangular", &DataSet<uint16_t>::dump_lower_triangular,
+           py::arg("filename"),
+           py::arg("cutoff") = std::numeric_limits<int>::max(),
            "Dump distances matrix in lower triangular format (comma-delimited, "
-           "row-major)")
+           "row-major). If a cutoff is provided, any distances greater than "
+           "the cutoff will be omitted from the output file.")
       .def("dump_sequence_indices", &DataSet<uint16_t>::dump_sequence_indices,
            "Dump row index in distances matrix for each input sequence")
       .def("__getitem__", &DataSet<uint16_t>::operator[])

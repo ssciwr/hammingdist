@@ -32,6 +32,16 @@ def check_output_sizes(dat, n_in, n_out, tmp_out_file, fasta_sequence_indices=No
         assert np.allclose(indices, fasta_sequence_indices)
 
 
+def get_lt(dat, tmp_out_file, cutoff=None):
+    if cutoff is not None:
+        dat.dump_lower_triangular(tmp_out_file, cutoff)
+    else:
+        dat.dump_lower_triangular(tmp_out_file)
+    with open(tmp_out_file) as f:
+        lines = f.read().splitlines()
+    return [line.split(",") for line in lines]
+
+
 @pytest.mark.parametrize(
     "from_fasta_func", [hammingdist.from_fasta, hammingdist.from_fasta_large]
 )
@@ -50,6 +60,41 @@ def test_from_fasta(from_fasta_func, tmp_path):
 
     data = hammingdist.from_fasta(fasta_file)
     check_output_sizes(data, 6, 6, output_file)
+
+    lt = get_lt(data, output_file)
+    assert lt[0] == ["2"]
+    assert lt[1] == ["2", "0"]
+    assert lt[2] == ["2", "0", "0"]
+    assert lt[3] == ["1", "3", "3", "3"]
+    assert lt[4] == ["1", "3", "3", "3", "1"]
+
+    lt = get_lt(data, output_file, 3)
+    assert lt[0] == ["2"]
+    assert lt[1] == ["2", "0"]
+    assert lt[2] == ["2", "0", "0"]
+    assert lt[3] == ["1", "3", "3", "3"]
+    assert lt[4] == ["1", "3", "3", "3", "1"]
+
+    lt = get_lt(data, output_file, 2)
+    assert lt[0] == ["2"]
+    assert lt[1] == ["2", "0"]
+    assert lt[2] == ["2", "0", "0"]
+    assert lt[3] == ["1", "", "", ""]
+    assert lt[4] == ["1", "", "", "", "1"]
+
+    lt = get_lt(data, output_file, 1)
+    assert lt[0] == [""]
+    assert lt[1] == ["", "0"]
+    assert lt[2] == ["", "0", "0"]
+    assert lt[3] == ["1", "", "", ""]
+    assert lt[4] == ["1", "", "", "", "1"]
+
+    lt = get_lt(data, output_file, 0)
+    assert lt[0] == [""]
+    assert lt[1] == ["", "0"]
+    assert lt[2] == ["", "0", "0"]
+    assert lt[3] == ["", "", "", ""]
+    assert lt[4] == ["", "", "", "", ""]
 
     data = hammingdist.from_fasta(fasta_file, n=5)
     check_output_sizes(data, 5, 5, output_file)

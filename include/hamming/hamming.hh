@@ -66,7 +66,7 @@ template <typename DistIntType> struct DataSet {
     }
   }
 
-  void dump_lower_triangular(const std::string &filename) {
+  void dump_lower_triangular(const std::string &filename, int cutoff) {
     std::ofstream stream(filename);
 #ifdef HAMMING_WITH_OPENMP
     std::size_t block_size = 200;
@@ -80,9 +80,17 @@ template <typename DistIntType> struct DataSet {
       for (std::size_t i = i_start; i < i_end; ++i) {
         std::size_t offset{i * (i - 1) / 2};
         for (std::size_t j = 0; j + 1 < i; ++j) {
-          line << static_cast<int>(result[offset + j]) << ",";
+          int d{static_cast<int>(result[offset + j])};
+          if (d <= cutoff) {
+            line << d;
+          }
+          line << ",";
         }
-        line << static_cast<int>(result[offset + i - 1]) << "\n";
+        int d{static_cast<int>(result[offset + i - 1])};
+        if (d <= cutoff) {
+          line << d;
+        }
+        line << "\n";
       }
 #pragma omp ordered
       stream << line.str();
@@ -91,9 +99,17 @@ template <typename DistIntType> struct DataSet {
     std::size_t k = 0;
     for (std::size_t i = 1; i < nsamples; ++i) {
       for (std::size_t j = 0; j + 1 < i; ++j) {
-        stream << static_cast<int>(result[k++]) << ",";
+        int d{static_cast<int>(result[k++])};
+        if (d <= cutoff) {
+          stream << d;
+        }
+        stream << ",";
       }
-      stream << static_cast<int>(result[k++]) << "\n";
+      int d{static_cast<int>(result[k++])};
+      if (d <= cutoff) {
+        stream << d;
+      }
+      stream << "\n";
     }
 #endif
   }
