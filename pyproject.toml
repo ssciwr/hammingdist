@@ -43,7 +43,7 @@ HAMMING_BUILD_BENCHMARKS = "OFF"
 HAMMING_BUILD_PYTHON = "ON"
 
 [tool.cibuildwheel]
-skip = "*-manylinux_i686 cp38-macosx_arm64"
+skip = "*-manylinux_i686"
 test-skip = "pp* *-musllinux*"
 test-extras = "test"
 test-command = "pytest {project}/python/tests -v"
