@@ -1,15 +1,17 @@
 # Build hamming library
-add_library(hamming STATIC hamming.cc hamming_impl.cc)
+add_library(hamming STATIC hamming.cc hamming_impl.cc hamming_utils.cc)
 target_include_directories(hamming PUBLIC ../include)
+target_include_directories(hamming PRIVATE .)
 target_link_libraries(hamming PUBLIC CpuFeatures::cpu_features)
+target_link_libraries(hamming PUBLIC fmt::fmt-header-only)
 if(HAMMING_WITH_OPENMP)
   find_package(OpenMP REQUIRED)
   target_compile_definitions(hamming PUBLIC HAMMING_WITH_OPENMP)
   target_link_libraries(hamming PUBLIC OpenMP::OpenMP_CXX)
 endif()
 
-# compile optional SIMD code as separate libraries which can be used at runtime
-# if there is CPU support
+# compile optional SIMD/CUDA code as separate libraries which can be used at
+# runtime if there is hardware support
 if(HAMMING_WITH_SSE2)
   target_compile_definitions(hamming PUBLIC HAMMING_WITH_SSE2)
   add_library(distance_sse2 STATIC distance_sse2.cc)
@@ -41,9 +43,27 @@ if(HAMMING_WITH_NEON)
   target_link_libraries(hamming PRIVATE distance_neon)
 endif()
 
+if(HAMMING_WITH_CUDA)
+  target_compile_definitions(hamming PUBLIC HAMMING_WITH_CUDA)
+  add_library(distance_cuda STATIC distance_cuda.cu)
+  target_link_libraries(distance_cuda PUBLIC fmt::fmt-header-only)
+  target_include_directories(distance_cuda PRIVATE .)
+  target_include_directories(distance_cuda PUBLIC ../include)
+  target_link_libraries(hamming PRIVATE distance_cuda)
+  set_target_properties(distance_cuda PROPERTIES CUDA_ARCHITECTURES "all")
+  if(HAMMING_WITH_OPENMP)
+    target_compile_definitions(distance_cuda PUBLIC HAMMING_WITH_OPENMP)
+    target_link_libraries(distance_cuda PUBLIC OpenMP::OpenMP_CXX)
+    # This is required to make nvcc pass the -fopenmp option to gcc:
+    target_compile_options(distance_cuda PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:
+                                                 -Xcompiler=-fopenmp>)
+  endif()
+endif()
+
 # Build library benchmarks
 if(HAMMING_BUILD_BENCHMARKS)
-  add_executable(bench bench.cc hamming_bench.cc hamming_impl_bench.cc)
+  add_executable(bench bench.cc hamming_bench.cc hamming_impl_bench.cc
+                       hamming_utils_bench.cc)
   if(HAMMING_WITH_SSE2)
     target_sources(bench PRIVATE distance_sse2_bench.cc)
     target_link_libraries(bench PRIVATE distance_sse2)
@@ -60,13 +80,17 @@ if(HAMMING_BUILD_BENCHMARKS)
     target_sources(bench PRIVATE distance_neon_bench.cc)
     target_link_libraries(bench PRIVATE distance_neon)
   endif()
+  if(HAMMING_WITH_CUDA)
+    target_sources(bench PRIVATE distance_cuda_bench.cc)
+    target_link_libraries(bench PRIVATE distance_cuda)
+  endif()
   target_link_libraries(bench PRIVATE hamming benchmark::benchmark
                                       CpuFeatures::cpu_features)
 endif()
 
 # Build tests
 if(BUILD_TESTING)
-  include(../ext/Catch2/contrib/Catch.cmake)
+  include(../ext/Catch2/extras/Catch.cmake)
   add_executable(tests tests.cc hamming_t.cc hamming_impl_t.cc)
   if(HAMMING_WITH_SSE2)
     target_sources(tests PRIVATE distance_sse2_t.cc)
@@ -84,7 +108,11 @@ if(BUILD_TESTING)
     target_sources(tests PRIVATE distance_neon_t.cc)
     target_link_libraries(tests PRIVATE distance_neon)
   endif()
-  target_link_libraries(tests PRIVATE hamming Catch2::Catch2
+  if(HAMMING_WITH_CUDA)
+    target_sources(tests PRIVATE distance_cuda_t.cc)
+    target_link_libraries(tests PRIVATE distance_cuda)
+  endif()
+  target_link_libraries(tests PRIVATE hamming Catch2::Catch2WithMain
                                       CpuFeatures::cpu_features)
-  catch_discover_tests(tests)
+  catch_discover_tests(tests EXTRA_ARGS "--allow-running-no-tests")
 endif()

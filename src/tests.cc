@@ -24,4 +24,13 @@ std::vector<GeneBlock> make_gene_vector(int n, std::mt19937 &gen,
   return from_string(make_test_string(n, gen, include_x));
 }
 
+void write_test_fasta(const std::string &filename, int n, std::size_t n_seq,
+                      std::mt19937 &gen, bool include_x) {
+  std::ofstream fs;
+  fs.open(filename);
+  for (std::size_t i = 0; i < n_seq; ++i) {
+    fs << ">seq" << i << "\n" << make_test_string(n, gen, include_x) << "\n";
+  }
+  fs.close();
+}
 } // namespace hamming

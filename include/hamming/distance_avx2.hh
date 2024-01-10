@@ -1,5 +1,4 @@
-#ifndef _HAMMING_DISTANCE_AVX2_HH
-#define _HAMMING_DISTANCE_AVX2_HH
+#pragma once
 
 #include <cstdint>
 #include <vector>
@@ -12,5 +11,3 @@ int distance_avx2(const std::vector<GeneBlock> &a,
                   const std::vector<GeneBlock> &b);
 
 }
-
-#endif

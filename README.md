@@ -1,4 +1,4 @@
-A small C++ tool to calculate pairwise distances between gene sequences given in fasta format.
+A small and fast C++ tool to calculate pairwise distances between gene sequences given in fasta format.
 
 [![DOI](https://zenodo.org/badge/308676358.svg)](https://zenodo.org/badge/latestdoi/308676358)
 [![pypi releases](https://img.shields.io/pypi/v/hammingdist.svg)](https://pypi.org/project/hammingdist)
@@ -117,9 +117,34 @@ distance = hammingdist.distance("ACGTX", "AAGTX", include_x=True)
 
 ## OpenMP on linux
 
-The latest versions of hammingdist on linux are now built with OpenMP (multithreading) support.
-If this causes any issues, you can install a previous version of hammingdist without OpenMP support:
+On linux hammingdist is built with OpenMP (multithreading) support, and will automatically make use of all available CPU threads.
 
-```bash
-pip install hammingdist==0.11.0
+## CUDA on linux
+
+On linux hammingdist is also built with CUDA (Nvidia GPU) support.
+To use the GPU instead of the CPU, set `use_gpu=True` when calling `from_fasta`:
+
+```python
+import hammingdist
+
+data = hammingdist.from_fasta("example.fasta", use_gpu=True)
 ```
+
+Additionally, the lower triangular matrix file can now be directly constructed from the fasta file
+using the GPU with the `from_fasta_to_lower_triangular` function.
+This avoids storing the entire distances matrix in memory and interleaves computation on the GPU with disk I/O on the CPU,
+which means it requires less RAM and runs faster.
+
+```python
+import hammingdist
+
+hammingdist.from_fasta_to_lower_triangular('input_fasta.txt', 'output_lower_triangular.txt', use_gpu=True)
+```
+
+![overview](plots/speed.png)
+
+## Performance history
+
+A rough measure of the impact of the different performance improvements in hammingdist:
+
+![overview](plots/overview.png)

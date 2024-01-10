@@ -4,7 +4,7 @@ build-backend = "scikit_build_core.build"
 
 [project]
 name = "hammingdist"
-version = "0.21.0"
+version = "1.0.0"
 description = "A fast tool to calculate Hamming distances"
 readme = "README.md"
 license = {text = "MIT"}
@@ -37,21 +37,24 @@ Issues = "https://github.com/ssciwr/hammingdist/issues"
 [project.optional-dependencies]
 test = ["pytest", "numpy"]
 
+[tool.scikit-build]
+cmake.verbose = true
+
 [tool.scikit-build.cmake.define]
 BUILD_TESTING = "OFF"
 HAMMING_BUILD_BENCHMARKS = "OFF"
 HAMMING_BUILD_PYTHON = "ON"
 
 [tool.cibuildwheel]
-skip = "*-manylinux_i686"
-test-skip = "pp* *-musllinux*"
+skip = "*-manylinux_i686 *-musllinux*"
+test-skip = "pp*"
 test-extras = "test"
 test-command = "pytest {project}/python/tests -v"
 environment = { BLAS="None", LAPACK="None", ATLAS="None" }
 build-verbosity = 3
 
 [tool.cibuildwheel.linux]
-environment = { CMAKE_ARGS="-DHAMMING_WITH_OPENMP=ON" }
+environment = { CMAKE_ARGS="-DHAMMING_WITH_OPENMP=ON -DHAMMING_WITH_CUDA=ON" }
 
 [[tool.cibuildwheel.overrides]]
 select = "*-macosx_arm64*"

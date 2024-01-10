@@ -3,6 +3,8 @@ import numpy as np
 import random
 import pytest
 
+gpu_options = [False, True] if hammingdist.cuda_gpu_available() else [False]
+
 
 def write_fasta_file(filename, sequences):
     with open(filename, "w") as f:
@@ -35,7 +37,8 @@ def check_output_sizes(dat, n_in, n_out, tmp_out_file, fasta_sequence_indices=No
 @pytest.mark.parametrize(
     "from_fasta_func", [hammingdist.from_fasta, hammingdist.from_fasta_large]
 )
-def test_from_fasta(from_fasta_func, tmp_path):
+@pytest.mark.parametrize("use_gpu", gpu_options)
+def test_from_fasta(from_fasta_func, use_gpu, tmp_path):
     sequences = [
         "ACGTGTCGTGTCGACGTGTCG",
         "ACGTGTCGTTTCGACGAGTCG",
@@ -48,34 +51,36 @@ def test_from_fasta(from_fasta_func, tmp_path):
     output_file = str(tmp_path / "out.txt")
     write_fasta_file(fasta_file, sequences)
 
-    data = hammingdist.from_fasta(fasta_file)
+    data = from_fasta_func(fasta_file, use_gpu=use_gpu)
     check_output_sizes(data, 6, 6, output_file)
 
-    data = hammingdist.from_fasta(fasta_file, n=5)
+    data = from_fasta_func(fasta_file, n=5, use_gpu=use_gpu)
     check_output_sizes(data, 5, 5, output_file)
 
-    data = hammingdist.from_fasta(fasta_file, include_x=True)
+    data = from_fasta_func(fasta_file, include_x=True, use_gpu=False)
     check_output_sizes(data, 6, 6, output_file)
 
     fasta_sequence_indices = hammingdist.fasta_sequence_indices(fasta_file)
-    data = hammingdist.from_fasta(fasta_file, remove_duplicates=True)
+    data = from_fasta_func(fasta_file, remove_duplicates=True, use_gpu=use_gpu)
     check_output_sizes(data, 6, 4, output_file, fasta_sequence_indices)
 
     fasta_sequence_indices = hammingdist.fasta_sequence_indices(fasta_file)
-    data = hammingdist.from_fasta(fasta_file, remove_duplicates=True, include_x=True)
+    data = from_fasta_func(
+        fasta_file, remove_duplicates=True, include_x=True, use_gpu=False
+    )
     check_output_sizes(data, 6, 4, output_file, fasta_sequence_indices)
 
     fasta_sequence_indices = hammingdist.fasta_sequence_indices(fasta_file, n=2)
-    data = hammingdist.from_fasta(fasta_file, include_x=True, n=2)
+    data = from_fasta_func(fasta_file, include_x=True, n=2, use_gpu=False)
     check_output_sizes(data, 2, 2, output_file, fasta_sequence_indices)
 
     fasta_sequence_indices = hammingdist.fasta_sequence_indices(fasta_file, n=3)
-    data = hammingdist.from_fasta(fasta_file, remove_duplicates=True, n=3)
+    data = from_fasta_func(fasta_file, remove_duplicates=True, n=3, use_gpu=use_gpu)
     check_output_sizes(data, 3, 2, output_file, fasta_sequence_indices)
 
     fasta_sequence_indices = hammingdist.fasta_sequence_indices(fasta_file, n=5)
-    data = hammingdist.from_fasta(
-        fasta_file, remove_duplicates=True, n=5, include_x=True
+    data = from_fasta_func(
+        fasta_file, remove_duplicates=True, n=5, include_x=True, use_gpu=False
     )
     check_output_sizes(data, 5, 3, output_file, fasta_sequence_indices)
 
@@ -125,3 +130,25 @@ def test_distance():
     assert hammingdist.distance("ACGTX", "ACCTX", include_x=True) == 1
     with pytest.raises(RuntimeError):
         hammingdist.distance("ACGT", "ACC")
+
+
+@pytest.mark.skipif(
+    not hammingdist.cuda_gpu_available(),
+    reason="No CUDA GPU available or hammingdist was compiled without CUDA support",
+)
+def test_from_fasta_to_lower_triangular(tmp_path):
+    sequences = [
+        "ACGTGTCGTGTCGACGTGTCGCAGGTGTCGACGTGTCGCAGGTGTCGACGTGTCGCAG",
+        "CCGTGTCGTGTCGACGTGTCGC-GGTGTCGACGTGTCGCAGGTGTCGACGTGTCGCAG",
+        "CAGTGT-GTGTCGACGTGTCGCAGGTGTCGACGTGTCGCAGGTGTCGACGTG--GCAG",
+    ]
+    lower_triangular_dist = [[1], [2, 1]]
+    fasta_file = str(tmp_path / "fasta.txt")
+    output_file = str(tmp_path / "out.txt")
+    write_fasta_file(fasta_file, sequences)
+    hammingdist.from_fasta_to_lower_triangular(fasta_file, output_file)
+    with open(output_file) as f:
+        data = f.read().splitlines()
+    assert len(data) == 2
+    assert np.allclose(np.fromstring(data[0], sep=","), lower_triangular_dist[0])
+    assert np.allclose(np.fromstring(data[1], sep=","), lower_triangular_dist[1])

@@ -59,7 +59,7 @@ PYBIND11_MODULE(hammingdist, m) {
         "(full matrix expected)");
   m.def("from_fasta", &from_fasta<uint8_t>, py::arg("filename"),
         py::arg("include_x") = false, py::arg("remove_duplicates") = false,
-        py::arg("n") = 0,
+        py::arg("n") = 0, py::arg("use_gpu") = false,
         "Creates a dataset by reading from a fasta file (assuming all "
         "sequences have equal length). Maximum value of an element in the "
         "distances matrix: 255. Distances that would have been larger than "
@@ -67,13 +67,26 @@ PYBIND11_MODULE(hammingdist, m) {
         "than this see `from_fasta_large` instead.");
   m.def("from_fasta_large", &from_fasta<uint16_t>, py::arg("filename"),
         py::arg("include_x") = false, py::arg("remove_duplicates") = false,
-        py::arg("n") = 0,
+        py::arg("n") = 0, py::arg("use_gpu") = false,
         "Creates a dataset by reading from a fasta file (assuming all "
         "sequences have equal length). Maximum value of an element in the "
         "distances matrix: 65535");
-  m.def("from_lower_triangular", &from_lower_triangular,
+  m.def("from_fasta_to_lower_triangular", &from_fasta_to_lower_triangular,
+        py::arg("fasta_filename"), py::arg("output_filename"),
+        py::arg("remove_duplicates") = false, py::arg("n") = 0,
+        py::arg("use_gpu") = true,
+        "Construct lower triangular distances matrix output file from the "
+        "fasta file,"
+        "requires an NVIDIA GPU. Maximum value of an element in "
+        "the distances matrix: 65535");
+  m.def("from_lower_triangular", &from_lower_triangular<uint8_t>,
         "Creates a dataset by reading already computed distances from lower "
-        "triangular format");
+        "triangular format. Maximum value of an element in the distances "
+        "matrix: 255.");
+  m.def("from_lower_triangular_large", &from_lower_triangular<uint16_t>,
+        "Creates a dataset by reading already computed distances from lower "
+        "triangular format. Maximum value of an element in the distances "
+        "matrix: 65535.");
   m.def("distance", &distance, py::arg("seq0"), py::arg("seq1"),
         py::arg("include_x") = false,
         "Calculate the distance between seq0 and seq1");
@@ -98,6 +111,8 @@ PYBIND11_MODULE(hammingdist, m) {
       "constructing the distances matrix."
       "For each genome in the input fasta file it gives the index of the "
       "corresponding row in the distances matrix which excludes duplicates");
+  m.def("cuda_gpu_available", &cuda_gpu_available,
+        "True if a GPU that supports CUDA is available");
 }
 
 } // namespace hamming

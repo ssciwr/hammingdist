@@ -65,4 +65,4 @@ jobs:
       - name: run tests
         shell: bash
         working-directory: ${{runner.workspace}}/build
-        run: ctest
+        run: ctest -j2 --rerun-failed --output-on-failure

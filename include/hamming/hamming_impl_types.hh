@@ -1,5 +1,4 @@
-#ifndef _HAMMING_IMPL_TYPES_HH
-#define _HAMMING_IMPL_TYPES_HH
+#pragma once
 
 #include <array>
 #include <cstdint>
@@ -14,5 +13,3 @@ constexpr GeneBlock mask_gene0{0x0f};
 constexpr GeneBlock mask_gene1{0xf0};
 
 } // namespace hamming
-
-#endif

@@ -1,3 +1,5 @@
+add_subdirectory(fmt)
+
 if(HAMMING_BUILD_PYTHON)
   add_subdirectory(pybind11)
 endif()
