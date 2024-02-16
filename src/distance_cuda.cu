@@ -7,9 +7,10 @@
 namespace hamming {
 
 template <typename DistIntType>
-__global__ void Dist(DistIntType *partial_distances, const std::uint8_t *genes,
-                     std::uint64_t distances_offset,
-                     unsigned int geneBlocksPerSample) {
+__global__ void
+Dist(DistIntType *partial_distances, const std::uint8_t *genes,
+     std::uint64_t distances_offset, unsigned int geneBlocksPerSample,
+     DistIntType max_dist = cuda::std::numeric_limits<DistIntType>::max()) {
   // Calculates all gridDim.x entries of the partial_distances array.
   //
   // The full distances array is a flat nsamples * (nsamples - 1) / 2 element
@@ -82,8 +83,7 @@ __global__ void Dist(DistIntType *partial_distances, const std::uint8_t *genes,
       sum += __shfl_down_sync(FULL_MASK, sum, offset);
     }
     if (threadIndex == 0) {
-      auto maxDist{cuda::std::numeric_limits<DistIntType>::max()};
-      partial_distances[distancesIndex] = sum > maxDist ? maxDist : sum;
+      partial_distances[distancesIndex] = sum > max_dist ? max_dist : sum;
     }
   }
 }
@@ -91,7 +91,8 @@ __global__ void Dist(DistIntType *partial_distances, const std::uint8_t *genes,
 template <typename DistIntType>
 std::vector<DistIntType>
 distances_cuda(const std::vector<std::vector<GeneBlock>> &data,
-               const std::string &filename = {}) {
+               const std::string &filename = {},
+               DistIntType max_dist = std::numeric_limits<DistIntType>::max()) {
   std::vector<DistIntType> distances{};
   std::size_t timing_gpu_ms = 0;
   std::size_t timing_io_ms = 0;
@@ -150,7 +151,8 @@ distances_cuda(const std::vector<std::vector<GeneBlock>> &data,
     // this call returns immediately and the kernel runs asynchronously on the
     // GPU
     Dist<<<numBlocks, threadsPerBlock, nThreadsPerBlock * sizeof(int)>>>(
-        partial_distances, genes, distances_offset, geneBlocksPerSample);
+        partial_distances, genes, distances_offset, geneBlocksPerSample,
+        max_dist);
     cudaEventRecord(stop);
     if (auto err = cudaGetLastError(); err != cudaSuccess) {
       throw std::runtime_error(cudaGetErrorString(err));
@@ -200,26 +202,31 @@ distances_cuda(const std::vector<std::vector<GeneBlock>> &data,
 }
 
 std::vector<uint8_t>
-distances_cuda_8bit(const std::vector<std::vector<GeneBlock>> &data) {
-  return distances_cuda<uint8_t>(data, {});
+distances_cuda_8bit(const std::vector<std::vector<GeneBlock>> &data,
+                    uint8_t max_dist) {
+  return distances_cuda<uint8_t>(data, {}, max_dist);
 }
 
 std::vector<uint16_t>
-distances_cuda_16bit(const std::vector<std::vector<GeneBlock>> &data) {
-  return distances_cuda<uint16_t>(data, {});
+distances_cuda_16bit(const std::vector<std::vector<GeneBlock>> &data,
+                     uint16_t max_dist) {
+  return distances_cuda<uint16_t>(data, {}, max_dist);
 }
 
 void distances_cuda_to_lower_triangular(
     const std::vector<std::vector<GeneBlock>> &data,
-    const std::string &filename) {
-  distances_cuda<uint16_t>(data, filename);
+    const std::string &filename, int max_distance) {
+  uint16_t max_dist = max_distance > std::numeric_limits<uint16_t>::max()
+                          ? std::numeric_limits<uint16_t>::max()
+                          : static_cast<uint16_t>(max_distance);
+  distances_cuda<uint16_t>(data, filename, max_dist);
 }
 
 int distance_cuda(const std::vector<GeneBlock> &a,
-                  const std::vector<GeneBlock> &b) {
+                  const std::vector<GeneBlock> &b, int max_dist) {
   // wrapper for testing cuda kernel with existing distance API
   std::vector<std::vector<GeneBlock>> data{a, b};
-  return distances_cuda<int>(data, {})[0];
+  return distances_cuda<int>(data, {}, max_dist)[0];
 }
 
 bool distance_cuda_have_device() {

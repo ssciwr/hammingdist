@@ -40,13 +40,14 @@ std::vector<std::string> make_stringlist(int64_t n, int64_t n_samples,
 }
 
 void write_fasta(const std::string &filename, const std::string &seq,
-                 std::size_t n_seq, std::mt19937 &gen) {
+                 std::size_t n_seq, std::mt19937 &gen,
+                 std::size_t randomise_every_n) {
   std::ofstream fs;
   fs.open(filename);
   for (std::size_t i = 0; i < n_seq; ++i) {
     auto randomized_seq{seq};
-    // make ~0.5% of each sequence differ from seq
-    randomize_n(randomized_seq, seq.size() / 200, gen);
+    // randomly replace 1 in randomise_every_n elements of seq
+    randomize_n(randomized_seq, seq.size() / randomise_every_n, gen);
     fs << ">seq" << i << "\n" << randomized_seq << "\n";
   }
   fs.close();

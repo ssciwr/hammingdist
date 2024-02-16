@@ -19,10 +19,12 @@ template <typename DistIntType> struct DataSet {
   explicit DataSet(std::vector<std::string> &data, bool include_x = false,
                    bool clear_input_data = false,
                    std::vector<std::size_t> &&indices = {},
-                   bool use_gpu = false)
+                   bool use_gpu = false,
+                   int max_distance = std::numeric_limits<int>::max())
       : nsamples(data.size()), sequence_indices(std::move(indices)) {
     validate_data(data);
-    result = distances<DistIntType>(data, include_x, clear_input_data, use_gpu);
+    result = distances<DistIntType>(data, include_x, clear_input_data, use_gpu,
+                                    max_distance);
   }
 
   explicit DataSet(const std::string &filename) {
@@ -99,9 +101,10 @@ template <typename DistIntType> struct DataSet {
   std::vector<std::size_t> sequence_indices{};
 };
 
-DataSet<DefaultDistIntType> from_stringlist(std::vector<std::string> &data,
-                                            bool include_x = false,
-                                            bool use_gpu = false);
+DataSet<DefaultDistIntType>
+from_stringlist(std::vector<std::string> &data, bool include_x = false,
+                bool use_gpu = false,
+                int max_distance = std::numeric_limits<int>::max());
 
 DataSet<DefaultDistIntType> from_csv(const std::string &filename);
 
@@ -122,19 +125,21 @@ DataSet<DistIntType> from_lower_triangular(const std::string &filename) {
 }
 
 template <typename DistIntType>
-DataSet<DistIntType> from_fasta(const std::string &filename,
-                                bool include_x = false,
-                                bool remove_duplicates = false,
-                                std::size_t n = 0, bool use_gpu = false) {
+DataSet<DistIntType>
+from_fasta(const std::string &filename, bool include_x = false,
+           bool remove_duplicates = false, std::size_t n = 0,
+           bool use_gpu = false,
+           int max_distance = std::numeric_limits<int>::max()) {
   auto [data, sequence_indices] = read_fasta(filename, remove_duplicates, n);
   return DataSet<DistIntType>(data, include_x, true,
-                              std::move(sequence_indices), use_gpu);
+                              std::move(sequence_indices), use_gpu,
+                              max_distance);
 }
 
-void from_fasta_to_lower_triangular(const std::string &input_filename,
-                                    const std::string &output_filename,
-                                    bool remove_duplicates = false,
-                                    std::size_t n = 0, bool use_gpu = false);
+void from_fasta_to_lower_triangular(
+    const std::string &input_filename, const std::string &output_filename,
+    bool remove_duplicates = false, std::size_t n = 0, bool use_gpu = false,
+    int max_distance = std::numeric_limits<int>::max());
 
 ReferenceDistIntType distance(const std::string &seq0, const std::string &seq1,
                               bool include_x = false);
