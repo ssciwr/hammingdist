@@ -60,25 +60,28 @@ PYBIND11_MODULE(hammingdist, m) {
   m.def("from_fasta", &from_fasta<uint8_t>, py::arg("filename"),
         py::arg("include_x") = false, py::arg("remove_duplicates") = false,
         py::arg("n") = 0, py::arg("use_gpu") = false,
+        py::arg("max_distance") = 255,
         "Creates a dataset by reading from a fasta file (assuming all "
         "sequences have equal length). Maximum value of an element in the "
-        "distances matrix: 255. Distances that would have been larger than "
-        "this value saturate at 255 - to support genomes with larger distances "
-        "than this see `from_fasta_large` instead.");
+        "distances matrix: max_distance or 255, whichever is lower."
+        "Distances that would have been larger than "
+        "this value instead saturate at this value - to support genomes with "
+        "larger distances than this see `from_fasta_large` instead.");
   m.def("from_fasta_large", &from_fasta<uint16_t>, py::arg("filename"),
         py::arg("include_x") = false, py::arg("remove_duplicates") = false,
         py::arg("n") = 0, py::arg("use_gpu") = false,
+        py::arg("max_distance") = 65535,
         "Creates a dataset by reading from a fasta file (assuming all "
         "sequences have equal length). Maximum value of an element in the "
-        "distances matrix: 65535");
+        "distances matrix: max_distance or 65535, whichever is lower");
   m.def("from_fasta_to_lower_triangular", &from_fasta_to_lower_triangular,
         py::arg("fasta_filename"), py::arg("output_filename"),
         py::arg("remove_duplicates") = false, py::arg("n") = 0,
-        py::arg("use_gpu") = true,
+        py::arg("use_gpu") = true, py::arg("max_distance") = 65535,
         "Construct lower triangular distances matrix output file from the "
         "fasta file,"
         "requires an NVIDIA GPU. Maximum value of an element in "
-        "the distances matrix: 65535");
+        "the distances matrix: max_distance or 65535, whichever is lower");
   m.def("from_lower_triangular", &from_lower_triangular<uint8_t>,
         "Creates a dataset by reading already computed distances from lower "
         "triangular format. Maximum value of an element in the distances "

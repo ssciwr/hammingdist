@@ -4,7 +4,7 @@
 namespace hamming {
 
 int distance_avx2(const std::vector<GeneBlock> &a,
-                  const std::vector<GeneBlock> &b) {
+                  const std::vector<GeneBlock> &b, int max_dist) {
   // distance implementation using AVX2 simd intrinsics
   // a 256-bit register holds 32 GeneBlocks, i.e. 64 genes
   constexpr std::size_t n_geneblocks{32};
@@ -24,8 +24,11 @@ int distance_avx2(const std::vector<GeneBlock> &a,
   std::size_t n_iter{a.size() / n_geneblocks};
   // each partial distance count is stored in a unit8, so max value = 255,
   // and the value can be increased by at most 2 with each iteration,
-  // so we do 127 inner iterations for a max value of 254 to avoid overflow
-  std::size_t n_inner{127};
+  // so up to 127 inner iterations for a max value of 254 avoid overflow.
+  // if max_dist is large then we maximise the number of inner iterations, but
+  // if it is small then we do fewer inner iterations to allow more
+  // opportunities to return early if we have reached max_dist
+  std::size_t n_inner = max_dist >= 255 ? 127 : 16;
   std::size_t n_outer{1 + n_iter / n_inner};
   for (std::size_t j = 0; j < n_outer; ++j) {
     std::size_t n{std::min((j + 1) * n_inner, n_iter)};
@@ -60,6 +63,9 @@ int distance_avx2(const std::vector<GeneBlock> &a,
     for (std::size_t i = 0; i < n_partialsums; ++i) {
       r += r_partial[i];
     }
+    if (r >= max_dist) {
+      return max_dist;
+    }
   }
   // do last partial block without simd intrinsics
   for (std::size_t i = n_geneblocks * n_iter; i < a.size(); ++i) {
@@ -67,7 +73,7 @@ int distance_avx2(const std::vector<GeneBlock> &a,
     r += static_cast<int>((c & mask_gene0) == 0);
     r += static_cast<int>((c & mask_gene1) == 0);
   }
-  return r;
+  return std::min(max_dist, r);
 }
 
 } // namespace hamming

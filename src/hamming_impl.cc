@@ -90,7 +90,7 @@ void validate_data(const std::vector<std::string> &data) {
   }
 }
 
-int distance_sparse(const SparseData &a, const SparseData &b) {
+int distance_sparse(const SparseData &a, const SparseData &b, int max_dist) {
   int r{0};
   std::size_t ia{0};
   std::size_t ib{0};
@@ -113,6 +113,9 @@ int distance_sparse(const SparseData &a, const SparseData &b) {
       ia += 2;
       ib += 2;
     }
+    if (r >= max_dist) {
+      return max_dist;
+    }
   }
   while (ia < a.size()) {
     r += static_cast<int>(a[ia + 1] != 0xff);
@@ -122,18 +125,18 @@ int distance_sparse(const SparseData &a, const SparseData &b) {
     r += static_cast<int>(b[ib + 1] != 0xff);
     ib += 2;
   }
-  return r;
+  return std::min(r, max_dist);
 }
 
 int distance_cpp(const std::vector<GeneBlock> &a,
-                 const std::vector<GeneBlock> &b) {
+                 const std::vector<GeneBlock> &b, int max_dist) {
   int r{0};
   for (std::size_t i = 0; i < a.size(); ++i) {
     auto c{static_cast<GeneBlock>(a[i] & b[i])};
     r += static_cast<int>((c & mask_gene0) == 0) +
          static_cast<int>((c & mask_gene1) == 0);
   }
-  return r;
+  return std::min(r, max_dist);
 }
 
 static std::string

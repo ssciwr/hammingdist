@@ -15,7 +15,8 @@ std::vector<std::string> make_stringlist(int64_t n, int64_t n_samples,
                                          std::mt19937 &gen);
 
 void write_fasta(const std::string &filename, const std::string &seq,
-                 std::size_t n_seq, std::mt19937 &gen);
+                 std::size_t n_seq, std::mt19937 &gen,
+                 std::size_t randomise_every_n = 200);
 
 template <typename DistIntType>
 std::vector<DistIntType> make_distances(int64_t n, std::mt19937 &gen) {

@@ -4,10 +4,12 @@
 #include <vector>
 
 #include "hamming/hamming_impl_types.hh"
+#include <limits>
 
 namespace hamming {
 
 int distance_sse2(const std::vector<GeneBlock> &a,
-                  const std::vector<GeneBlock> &b);
+                  const std::vector<GeneBlock> &b,
+                  int max_dist = std::numeric_limits<int>::max());
 
 }

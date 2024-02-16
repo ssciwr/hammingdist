@@ -14,8 +14,10 @@
 namespace hamming {
 
 DataSet<DefaultDistIntType> from_stringlist(std::vector<std::string> &data,
-                                            bool include_x, bool use_gpu) {
-  return DataSet<DefaultDistIntType>(data, include_x, false, {}, use_gpu);
+                                            bool include_x, bool use_gpu,
+                                            int max_distance) {
+  return DataSet<DefaultDistIntType>(data, include_x, false, {}, use_gpu,
+                                     max_distance);
 }
 
 DataSet<DefaultDistIntType> from_csv(const std::string &filename) {
@@ -25,7 +27,7 @@ DataSet<DefaultDistIntType> from_csv(const std::string &filename) {
 void from_fasta_to_lower_triangular(const std::string &input_filename,
                                     const std::string &output_filename,
                                     bool remove_duplicates, std::size_t n,
-                                    bool use_gpu) {
+                                    bool use_gpu, int max_distance) {
   if (use_gpu) {
     std::cout << "# hammingdist :: Using GPU..." << std::endl;
   }
@@ -40,7 +42,8 @@ void from_fasta_to_lower_triangular(const std::string &input_filename,
             << " ms..." << std::endl;
 #ifdef HAMMING_WITH_CUDA
   if (use_gpu) {
-    distances_cuda_to_lower_triangular(dense_data, output_filename);
+    distances_cuda_to_lower_triangular(dense_data, output_filename,
+                                       max_distance);
     return;
   }
 #endif

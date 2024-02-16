@@ -89,10 +89,10 @@ import hammingdist
 sequence_indices = hammingdist.fasta_sequence_indices(fasta_file)
 ```
 
-## Large distance values
+## Maximum distance values
 
 By default, the elements in the distances matrix returned by `hammingdist.from_fasta` have a maximum value of 255.
-
+You can also set a smaller maximum value using the `max_distance` argument.
 For distances larger than this `hammingdist.from_fasta_large` supports distances up to 65535 (but uses twice as much RAM)
 
 ## Distances from reference sequence
@@ -122,12 +122,12 @@ On linux hammingdist is built with OpenMP (multithreading) support, and will aut
 ## CUDA on linux
 
 On linux hammingdist is also built with CUDA (Nvidia GPU) support.
-To use the GPU instead of the CPU, set `use_gpu=True` when calling `from_fasta`:
+To use the GPU instead of the CPU, set `use_gpu=True` when calling `from_fasta`. Here we also set the maximum distance to 2:
 
 ```python
 import hammingdist
 
-data = hammingdist.from_fasta("example.fasta", use_gpu=True)
+data = hammingdist.from_fasta("example.fasta", use_gpu=True, max_distance=2)
 ```
 
 Additionally, the lower triangular matrix file can now be directly constructed from the fasta file
@@ -138,7 +138,7 @@ which means it requires less RAM and runs faster.
 ```python
 import hammingdist
 
-hammingdist.from_fasta_to_lower_triangular('input_fasta.txt', 'output_lower_triangular.txt', use_gpu=True)
+hammingdist.from_fasta_to_lower_triangular('input_fasta.txt', 'output_lower_triangular.txt', use_gpu=True, max_distance=2)
 ```
 
 ![overview](plots/speed.png)

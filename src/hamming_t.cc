@@ -183,31 +183,34 @@ TEST_CASE("from_fasta single line sequences with duplicates", "[hamming]") {
   std::vector<std::size_t> sequence_indices{0, 1, 1, 1, 0, 2};
   for (auto use_gpu : valid_use_gpu_values()) {
     for (int n : {0, 6, 22}) {
-      for (bool include_x : {false, true}) {
-        CAPTURE(include_x);
-        CAPTURE(use_gpu);
-        if (use_gpu && include_x) {
-          // include_x cannot be used with use_gpu
-          REQUIRE_THROWS(
-              from_fasta<uint8_t>(tmp_file_name, include_x, true, n, use_gpu));
-        } else {
-          auto d =
-              from_fasta<uint8_t>(tmp_file_name, include_x, true, n, use_gpu);
-          REQUIRE(d.nsamples == 3);
-          REQUIRE(d.sequence_indices == sequence_indices);
-          REQUIRE(d[{0, 0}] == 0);
-          REQUIRE(d[{0, 1}] == 2);
-          REQUIRE(d[{0, 2}] == 1);
-          REQUIRE(d[{1, 0}] == 2);
-          REQUIRE(d[{1, 1}] == 0);
-          REQUIRE(d[{1, 2}] == 2);
-          REQUIRE(d[{2, 0}] == 1);
-          REQUIRE(d[{2, 1}] == 2);
-          REQUIRE(d[{2, 2}] == 0);
+      for (int max_dist : {0, 1, 2, 3, 999999999}) {
+        for (bool include_x : {false, true}) {
+          CAPTURE(include_x);
+          CAPTURE(use_gpu);
+          if (use_gpu && include_x) {
+            // include_x cannot be used with use_gpu
+            REQUIRE_THROWS(from_fasta<uint8_t>(tmp_file_name, include_x, true,
+                                               n, use_gpu, max_dist));
+          } else {
+            auto d = from_fasta<uint8_t>(tmp_file_name, include_x, true, n,
+                                         use_gpu, max_dist);
+            REQUIRE(d.nsamples == 3);
+            REQUIRE(d.sequence_indices == sequence_indices);
+            REQUIRE(d[{0, 0}] == 0);
+            REQUIRE(d[{0, 1}] == (max_dist < 2 ? max_dist : 2));
+            REQUIRE(d[{0, 2}] == (max_dist < 1 ? max_dist : 1));
+            REQUIRE(d[{1, 0}] == (max_dist < 2 ? max_dist : 2));
+            REQUIRE(d[{1, 1}] == 0);
+            REQUIRE(d[{1, 2}] == (max_dist < 2 ? max_dist : 2));
+            REQUIRE(d[{2, 0}] == (max_dist < 1 ? max_dist : 1));
+            REQUIRE(d[{2, 1}] == (max_dist < 2 ? max_dist : 2));
+            REQUIRE(d[{2, 2}] == 0);
+          }
         }
       }
     }
   }
+
   std::remove(tmp_file_name);
 }
 
@@ -295,18 +298,21 @@ TEST_CASE("from_csv reproduces correct data", "[hamming]") {
 
 TEMPLATE_TEST_CASE("distance integer saturates instead of overflowing",
                    "[hamming]", uint8_t, uint16_t) {
-  auto n_max{static_cast<std::size_t>(std::numeric_limits<TestType>::max())};
+  auto n_max{static_cast<int>(std::numeric_limits<TestType>::max())};
   std::mt19937 gen(12345);
   std::vector<std::string> data(2);
   for (auto use_gpu : valid_use_gpu_values()) {
-    for (auto n : {n_max, n_max + 1, n_max + 99}) {
-      CAPTURE(use_gpu);
-      CAPTURE(n);
-      data[0] = std::string(n, 'A');
-      data[1] = std::string(n, 'T');
-      DataSet<TestType> dataSet(data, false, false, {}, use_gpu);
-      REQUIRE(dataSet[{0, 1}] == n_max);
-      REQUIRE(dataSet[{1, 0}] == n_max);
+    for (auto max_dist : {0, 1, 2, 3, 7, 21, 886, 2784904, 99999999}) {
+      for (auto n : {n_max, n_max + 1, n_max + 99}) {
+        CAPTURE(use_gpu);
+        CAPTURE(n);
+        CAPTURE(max_dist);
+        data[0] = std::string(n, 'A');
+        data[1] = std::string(n, 'T');
+        DataSet<TestType> dataSet(data, false, false, {}, use_gpu, max_dist);
+        REQUIRE(dataSet[{0, 1}] == std::min(max_dist, n_max));
+        REQUIRE(dataSet[{1, 0}] == std::min(max_dist, n_max));
+      }
     }
   }
 }
@@ -345,18 +351,20 @@ TEST_CASE("from_stringlist GPU and CPU implementations give consistent results",
   std::mt19937 gen(12345);
   for (bool include_x : {false}) {
     for (int n : {1, 5, 13, 32, 89, 185, 497, 1092}) {
-      for (int n_samples : {2, 3, 4, 7, 11, 32, 33, 257, 689}) {
-        std::vector<std::string> stringlist;
-        stringlist.reserve(n_samples);
-        for (std::size_t i = 0; i < n_samples; ++i) {
-          stringlist.push_back(make_test_string(n, gen, include_x));
-        }
-        CAPTURE(include_x);
-        auto d_cpu{from_stringlist(stringlist, include_x, false)};
-        auto d_gpu{from_stringlist(stringlist, include_x, true)};
-        for (std::size_t i = 0; i < n_samples; ++i) {
-          for (std::size_t j = 0; j < n_samples; ++j) {
-            REQUIRE(d_cpu[{i, j}] == d_gpu[{i, j}]);
+      for (int max_dist : {0, 1, 2, 3, 89, 497, 9999999}) {
+        for (int n_samples : {2, 3, 4, 7, 11, 32, 33, 257, 689}) {
+          std::vector<std::string> stringlist;
+          stringlist.reserve(n_samples);
+          for (std::size_t i = 0; i < n_samples; ++i) {
+            stringlist.push_back(make_test_string(n, gen, include_x));
+          }
+          CAPTURE(include_x);
+          auto d_cpu{from_stringlist(stringlist, include_x, false, max_dist)};
+          auto d_gpu{from_stringlist(stringlist, include_x, true, max_dist)};
+          for (std::size_t i = 0; i < n_samples; ++i) {
+            for (std::size_t j = 0; j < n_samples; ++j) {
+              REQUIRE(d_cpu[{i, j}] == d_gpu[{i, j}]);
+            }
           }
         }
       }
@@ -377,16 +385,20 @@ TEMPLATE_TEST_CASE(
   for (bool remove_duplicates : {false, true}) {
     for (bool include_x : {false}) {
       for (int n : {17, 88, 381, 1023}) {
-        for (int n_samples : {2, 3, 4, 7, 11, 127, 128, 255, 256, 257, 703}) {
-          write_test_fasta(tmp_file_name, n, n_samples, gen, include_x);
-          CAPTURE(include_x);
-          auto d_cpu{from_fasta<TestType>(tmp_file_name, include_x,
-                                          remove_duplicates, 0, false)};
-          auto d_gpu{from_fasta<TestType>(tmp_file_name, include_x,
-                                          remove_duplicates, 0, true)};
-          for (std::size_t i = 0; i < n_samples; ++i) {
-            for (std::size_t j = 0; j < n_samples; ++j) {
-              REQUIRE(d_cpu[{i, j}] == d_gpu[{i, j}]);
+        for (int max_dist : {0, 1, 2, 3, 89, 497, 9999999}) {
+          for (int n_samples : {2, 3, 4, 7, 11, 127, 128, 255, 256, 257, 703}) {
+            write_test_fasta(tmp_file_name, n, n_samples, gen, include_x);
+            CAPTURE(include_x);
+            auto d_cpu{from_fasta<TestType>(tmp_file_name, include_x,
+                                            remove_duplicates, 0, false,
+                                            max_dist)};
+            auto d_gpu{from_fasta<TestType>(tmp_file_name, include_x,
+                                            remove_duplicates, 0, true,
+                                            max_dist)};
+            for (std::size_t i = 0; i < n_samples; ++i) {
+              for (std::size_t j = 0; j < n_samples; ++j) {
+                REQUIRE(d_cpu[{i, j}] == d_gpu[{i, j}]);
+              }
             }
           }
         }
@@ -409,23 +421,26 @@ TEST_CASE("from_fasta_to_lower_triangular GPU consistent with CPU from_fasta",
   REQUIRE(std::tmpnam(tmp_lt_file_name) != nullptr);
   CAPTURE(tmp_lt_file_name);
   for (bool remove_duplicates : {false, true}) {
-    for (int n : {17, 88, 381, 1023}) {
-      for (int n_samples :
-           {2, 3, 4, 7, 11, 127, 128, 255, 256, 257, 703, 1012}) {
-        CAPTURE(remove_duplicates);
-        CAPTURE(n);
-        CAPTURE(n_samples);
-        write_test_fasta(tmp_fasta_file_name, n, n_samples, gen, false);
-        auto d_cpu{from_fasta<uint16_t>(tmp_fasta_file_name, false,
-                                        remove_duplicates, 0, false)};
-        from_fasta_to_lower_triangular(tmp_fasta_file_name, tmp_lt_file_name,
-                                       remove_duplicates, 0, true);
-        auto d_gpu{from_lower_triangular<uint16_t>(tmp_lt_file_name)};
-        for (std::size_t i = 0; i < n_samples; ++i) {
-          for (std::size_t j = 0; j < n_samples; ++j) {
-            CAPTURE(i);
-            CAPTURE(j);
-            REQUIRE(d_cpu[{i, j}] == d_gpu[{i, j}]);
+    for (int n : {17, 88, 381}) {
+      for (int max_dist : {0, 1, 2, 3, 89, 9999999}) {
+        for (int n_samples : {2, 3, 4, 7, 11, 127, 128, 255, 256, 257, 703}) {
+          CAPTURE(remove_duplicates);
+          CAPTURE(n);
+          CAPTURE(max_dist);
+          CAPTURE(n_samples);
+          write_test_fasta(tmp_fasta_file_name, n, n_samples, gen, false);
+          auto d_cpu{from_fasta<uint16_t>(tmp_fasta_file_name, false,
+                                          remove_duplicates, 0, false,
+                                          max_dist)};
+          from_fasta_to_lower_triangular(tmp_fasta_file_name, tmp_lt_file_name,
+                                         remove_duplicates, 0, true, max_dist);
+          auto d_gpu{from_lower_triangular<uint16_t>(tmp_lt_file_name)};
+          for (std::size_t i = 0; i < n_samples; ++i) {
+            for (std::size_t j = 0; j < n_samples; ++j) {
+              CAPTURE(i);
+              CAPTURE(j);
+              REQUIRE(d_cpu[{i, j}] == d_gpu[{i, j}]);
+            }
           }
         }
       }

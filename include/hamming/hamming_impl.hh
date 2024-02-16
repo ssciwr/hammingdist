@@ -28,25 +28,30 @@ inline bool cuda_gpu_available() {
 }
 
 typedef int (*distance_func_ptr)(const std::vector<GeneBlock> &,
-                                 const std::vector<GeneBlock> &);
+                                 const std::vector<GeneBlock> &, int);
 
 distance_func_ptr get_fastest_supported_distance_func();
 
 std::array<GeneBlock, 256> lookupTable(bool include_x = false);
 
-template <typename DistIntType> DistIntType safe_int_cast(int x) {
-  if (x > std::numeric_limits<DistIntType>::max()) {
-    return std::numeric_limits<DistIntType>::max();
+template <typename DistIntType>
+DistIntType
+safe_int_cast(int x,
+              DistIntType max_x = std::numeric_limits<DistIntType>::max()) {
+  if (x > max_x) {
+    return max_x;
   }
   return static_cast<DistIntType>(x);
 }
 
 void validate_data(const std::vector<std::string> &data);
 
-int distance_sparse(const SparseData &a, const SparseData &b);
+int distance_sparse(const SparseData &a, const SparseData &b,
+                    int max_dist = std::numeric_limits<int>::max());
 
 int distance_cpp(const std::vector<GeneBlock> &a,
-                 const std::vector<GeneBlock> &b);
+                 const std::vector<GeneBlock> &b,
+                 int max_dist = std::numeric_limits<int>::max());
 
 std::vector<SparseData> to_sparse_data(const std::vector<std::string> &data,
                                        bool include_x);
@@ -63,8 +68,9 @@ std::vector<GeneBlock> from_string(const std::string &str);
 template <typename DistIntType>
 std::vector<DistIntType> distances(std::vector<std::string> &data,
                                    bool include_x, bool clear_input_data,
-                                   bool use_gpu) {
+                                   bool use_gpu, int max_distance) {
   std::vector<DistIntType> result((data.size() - 1) * data.size() / 2, 0);
+  auto max_dist = safe_int_cast<DistIntType>(max_distance);
   auto start_time = std::chrono::high_resolution_clock::now();
   auto print_timing = [&start_time](const std::string &event,
                                     bool final = false) {
@@ -118,13 +124,14 @@ std::vector<DistIntType> distances(std::vector<std::string> &data,
     }
     print_timing("pre-processing");
 #ifdef HAMMING_WITH_OPENMP
-#pragma omp parallel for default(none) shared(result, sparse, nsamples)
+#pragma omp parallel for default(none)                                         \
+    shared(result, sparse, nsamples, max_dist)
 #endif
     for (std::size_t i = 0; i < nsamples; ++i) {
       std::size_t offset{i * (i - 1) / 2};
       for (std::size_t j = 0; j < i; ++j) {
-        result[offset + j] =
-            safe_int_cast<DistIntType>(distance_sparse(sparse[i], sparse[j]));
+        result[offset + j] = safe_int_cast<DistIntType>(
+            distance_sparse(sparse[i], sparse[j], max_dist));
       }
     }
     print_timing("distance calculation", true);
@@ -142,9 +149,9 @@ std::vector<DistIntType> distances(std::vector<std::string> &data,
     std::cout << "# hammingdist :: Using GPU..." << std::endl;
     print_timing("pre-processing");
     if constexpr (sizeof(DistIntType) == 1) {
-      return distances_cuda_8bit(dense);
+      return distances_cuda_8bit(dense, max_dist);
     } else if constexpr (sizeof(DistIntType) == 2) {
-      return distances_cuda_16bit(dense);
+      return distances_cuda_16bit(dense, max_dist);
     } else {
       throw std::runtime_error("No GPU implementation available");
     }
@@ -155,13 +162,13 @@ std::vector<DistIntType> distances(std::vector<std::string> &data,
   print_timing("pre-processing");
 #ifdef HAMMING_WITH_OPENMP
 #pragma omp parallel for schedule(static, 1) default(none)                     \
-    shared(result, dense, nsamples, distance_func)
+    shared(result, dense, nsamples, distance_func, max_dist)
 #endif
   for (std::size_t i = 0; i < nsamples; ++i) {
     std::size_t offset{i * (i - 1) / 2};
     for (std::size_t j = 0; j < i; ++j) {
-      result[offset + j] =
-          safe_int_cast<DistIntType>(distance_func(dense[i], dense[j]));
+      result[offset + j] = safe_int_cast<DistIntType>(
+          distance_func(dense[i], dense[j], max_dist));
     }
   }
   print_timing("distance calculation", true);

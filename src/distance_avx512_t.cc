@@ -17,9 +17,12 @@ TEST_CASE("distance_avx512() returns all return zero for identical vectors",
         32767,   32768,  32769,  65535,  65536,  65537,  131071, 131072,
         131073,  262143, 262144, 262145, 524287, 524288, 524289, 1048575,
         1048576, 1048577}) {
-    CAPTURE(n);
-    auto g1{make_gene_vector(n, gen)};
-    REQUIRE(distance_avx512(g1, g1) == 0);
+    for (int max_dist : {0, 1, 2, 11, 999, 9876544}) {
+      CAPTURE(n);
+      CAPTURE(max_dist);
+      auto g1{make_gene_vector(n, gen)};
+      REQUIRE(distance_avx512(g1, g1, max_dist) == 0);
+    }
   }
 }
 
@@ -35,10 +38,13 @@ TEST_CASE("distance_avx512() all return n for n A's and n G's",
         32767,   32768,  32769,  65535,  65536,  65537,  131071, 131072,
         131073,  262143, 262144, 262145, 524287, 524288, 524289, 1048575,
         1048576, 1048577}) {
-    CAPTURE(n);
-    auto g1 = from_string(std::string(n, 'A'));
-    auto g2 = from_string(std::string(n, 'G'));
-    REQUIRE(distance_avx512(g1, g2) == n);
+    for (int max_dist : {0, 1, 2, 11, 999, 9876544}) {
+      CAPTURE(n);
+      CAPTURE(max_dist);
+      auto g1 = from_string(std::string(n, 'A'));
+      auto g2 = from_string(std::string(n, 'G'));
+      REQUIRE(distance_avx512(g1, g2, max_dist) == std::min(max_dist, n));
+    }
   }
 }
 
@@ -55,9 +61,13 @@ TEST_CASE("distance_avx512() returns same as distance_cpp() for random vectors",
         32767,   32768,  32769,  65535,  65536,  65537,  131071, 131072,
         131073,  262143, 262144, 262145, 524287, 524288, 524289, 1048575,
         1048576, 1048577}) {
-    CAPTURE(n);
-    auto g1{make_gene_vector(n, gen)};
-    auto g2{make_gene_vector(n, gen)};
-    REQUIRE(distance_avx512(g1, g2) == distance_cpp(g1, g2));
+    for (int max_dist : {0, 1, 2, 11, 999, 9876544}) {
+      CAPTURE(n);
+      CAPTURE(max_dist);
+      auto g1{make_gene_vector(n, gen)};
+      auto g2{make_gene_vector(n, gen)};
+      REQUIRE(distance_avx512(g1, g2, max_dist) ==
+              distance_cpp(g1, g2, max_dist));
+    }
   }
 }

@@ -95,14 +95,18 @@ def test_from_fasta(from_fasta_func, use_gpu, tmp_path):
         (["A", "C", "G", "T", "-", "X"], True),
     ],
 )
-def test_fasta_reference_distances(chars, include_x, tmp_path):
+@pytest.mark.parametrize("max_distance", [0, 1, 2, 3, 89, 497, 9999999])
+def test_fasta_reference_distances(chars, include_x, max_distance, tmp_path):
     # generate 50 sequences, each with 25 characters
     sequences = ["".join(random.choices(chars, k=25)) for i in range(50)]
     fasta_file = str(tmp_path / "fasta.txt")
     write_fasta_file(fasta_file, sequences)
     # calculate distances matrix
     data = hammingdist.from_fasta(
-        fasta_file, remove_duplicates=False, include_x=include_x
+        fasta_file,
+        remove_duplicates=False,
+        include_x=include_x,
+        max_distance=max_distance,
     )
     # use each sequence in turn as the reference sequence & calculate reference distances
     for i, sequence in enumerate(sequences):
@@ -115,7 +119,7 @@ def test_fasta_reference_distances(chars, include_x, tmp_path):
         for j, dist in enumerate(vec):
             # if x is not included, invalid chars have distance 1 but data[i,i] returns 0 by construction
             if include_x or i != j:
-                assert data[i, j] == dist
+                assert data[i, j] == min(max_distance, dist)
             # should also agree with output of distance function for these two sequences
             assert dist == hammingdist.distance(
                 sequences[i], sequences[j], include_x=include_x
@@ -136,17 +140,23 @@ def test_distance():
     not hammingdist.cuda_gpu_available(),
     reason="No CUDA GPU available or hammingdist was compiled without CUDA support",
 )
-def test_from_fasta_to_lower_triangular(tmp_path):
+@pytest.mark.parametrize("max_distance", [0, 1, 2, 3, 89, 497, 9999999])
+def test_from_fasta_to_lower_triangular(tmp_path, max_distance):
     sequences = [
         "ACGTGTCGTGTCGACGTGTCGCAGGTGTCGACGTGTCGCAGGTGTCGACGTGTCGCAG",
         "CCGTGTCGTGTCGACGTGTCGC-GGTGTCGACGTGTCGCAGGTGTCGACGTGTCGCAG",
         "CAGTGT-GTGTCGACGTGTCGCAGGTGTCGACGTGTCGCAGGTGTCGACGTG--GCAG",
     ]
-    lower_triangular_dist = [[1], [2, 1]]
+    lower_triangular_dist = [
+        [min(1, max_distance)],
+        [min(2, max_distance), min(1, max_distance)],
+    ]
     fasta_file = str(tmp_path / "fasta.txt")
     output_file = str(tmp_path / "out.txt")
     write_fasta_file(fasta_file, sequences)
-    hammingdist.from_fasta_to_lower_triangular(fasta_file, output_file)
+    hammingdist.from_fasta_to_lower_triangular(
+        fasta_file, output_file, max_distance=max_distance
+    )
     with open(output_file) as f:
         data = f.read().splitlines()
     assert len(data) == 2

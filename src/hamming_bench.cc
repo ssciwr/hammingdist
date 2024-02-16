@@ -51,7 +51,7 @@ static void bench_from_fasta_to_lower_triangular_gpu(benchmark::State &state) {
   auto reference_seq{make_string(sampleLength, gen, true)};
   write_fasta(fasta_file, reference_seq, state.range(0), gen);
   for (auto _ : state) {
-    from_fasta_to_lower_triangular(fasta_file, lt_file, false);
+    from_fasta_to_lower_triangular(fasta_file, lt_file, false, 0, true);
   }
   state.SetComplexityN(n);
 }
@@ -67,6 +67,26 @@ static void bench_fasta_reference_distances(benchmark::State &state) {
   }
 }
 
+static void bench_from_fasta_max_dist(benchmark::State &state) {
+#ifdef HAMMING_WITH_OPENMP
+  omp_set_num_threads(1);
+#endif
+  std::mt19937 gen(12345);
+  int64_t max_dist{state.range(0)};
+  int64_t randomise_every_n{state.range(1)};
+  std::string fasta_file{benchmark_tmp_input_file};
+  auto reference_seq{make_string(sampleLength, gen, true)};
+  write_fasta(fasta_file, reference_seq, 4096, gen, randomise_every_n);
+  for (auto _ : state) {
+    from_fasta<ReferenceDistIntType>(fasta_file, false, false, 0, false,
+                                     max_dist);
+  }
+}
+
+BENCHMARK(bench_from_fasta_max_dist)
+    ->ArgsProduct({{2, 255},
+                   {10, 50, 100, 300, 500, 1000, 5000, 10000, 30000,
+                    10000000}});
 BENCHMARK(bench_from_stringlist)
     ->RangeMultiplier(2)
     ->Range(16, 1024)
