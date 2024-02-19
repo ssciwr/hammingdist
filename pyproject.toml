@@ -38,6 +38,7 @@ Issues = "https://github.com/ssciwr/hammingdist/issues"
 test = ["pytest", "numpy"]
 
 [tool.scikit-build]
+cmake.version = ">=3.23"
 cmake.verbose = true
 
 [tool.scikit-build.cmake.define]
