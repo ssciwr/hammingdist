@@ -162,3 +162,33 @@ def test_from_fasta_to_lower_triangular(tmp_path, max_distance):
     assert len(data) == 2
     assert np.allclose(np.fromstring(data[0], sep=","), lower_triangular_dist[0])
     assert np.allclose(np.fromstring(data[1], sep=","), lower_triangular_dist[1])
+
+
+@pytest.mark.parametrize("samples", [2, 3, 5, 11, 54, 120, 532, 981, 1568])
+@pytest.mark.parametrize("threshold", [0, 1, 2, 3, 4, 9, 89, 497])
+def test_dump_sparse(tmp_path, samples, threshold):
+    lt_file = str(tmp_path / "lt.txt")
+    with open(lt_file, "w") as f:
+        for n in range(1, samples):
+            f.write(
+                ",".join(
+                    str(x)
+                    for x in np.random.randint(low=0, high=256, size=n, dtype=np.uint32)
+                )
+            )
+            f.write("\n")
+    data = hammingdist.from_lower_triangular(lt_file)
+    # expected number of sparse entries
+    num_below_threshold = np.sum(np.array(data._distances) <= threshold)
+    if num_below_threshold > 0:
+        sparse_file = str(tmp_path / "sparse.txt")
+        data.dump_sparse(sparse_file, threshold)
+        sparse = np.loadtxt(sparse_file, delimiter=" ", dtype=np.uint32)
+        if sparse.ndim == 1:
+            sparse = np.array([sparse])
+        assert sparse.shape[0] == num_below_threshold
+        assert sparse.shape[1] == 3
+        # each sparse entry has the correct distance, and is not above threshold
+        for e in sparse:
+            assert e[2] <= threshold
+            assert data[e[0], e[1]] == e[2]

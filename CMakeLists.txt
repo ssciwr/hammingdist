@@ -1,8 +1,8 @@
-cmake_minimum_required(VERSION 3.23..3.27)
+cmake_minimum_required(VERSION 3.23..3.29)
 
 project(
   hammingdist
-  VERSION 1.1.0
+  VERSION 1.2.0
   LANGUAGES CXX)
 
 include(CTest)
@@ -52,10 +52,6 @@ add_subdirectory(ext)
 
 # Build the hamming library
 add_subdirectory(src)
-
-# The standalone executable
-add_executable(distance distance.cc)
-target_link_libraries(distance PUBLIC hamming)
 
 # The python package
 if(HAMMING_BUILD_PYTHON)

@@ -3,7 +3,11 @@
 #include "hamming/hamming_impl.hh"
 #include "hamming/hamming_types.hh"
 #include "hamming/hamming_utils.hh"
+#ifdef HAMMING_WITH_OPENMP
+#include <omp.h>
+#endif
 #include <cmath>
+#include <fmt/core.h>
 #include <fstream>
 #include <sstream>
 #include <string>
@@ -70,6 +74,43 @@ template <typename DistIntType> struct DataSet {
 
   void dump_lower_triangular(const std::string &filename) {
     write_lower_triangular(filename, result);
+  }
+
+  void dump_sparse(const std::string &filename, int threshold) {
+    std::ofstream stream(filename);
+#ifdef HAMMING_WITH_OPENMP
+    constexpr std::size_t samples_per_thread{200};
+#pragma omp parallel for schedule(static, 1) default(none)                     \
+    shared(result, stream, nsamples, samples_per_thread, threshold)
+    for (std::size_t i_start = 1; i_start < nsamples;
+         i_start += samples_per_thread) {
+      std::size_t i_end{std::min(i_start + samples_per_thread, nsamples)};
+      std::size_t offset{i_start * (i_start - 1) / 2};
+      auto *d = result.data() + offset;
+      std::string thread_local_lines;
+      for (std::size_t i = i_start; i < i_end; ++i) {
+        for (std::size_t j = 0; j < i; ++j) {
+          if (*d <= threshold) {
+            thread_local_lines.append(
+                fmt::format("{} {} {}\n", i, j, static_cast<int>(*d)));
+          }
+          ++d;
+        }
+      }
+#pragma omp critical
+      stream << thread_local_lines;
+    }
+#else
+    auto *d = result.data();
+    for (std::size_t i = 1; i < nsamples; ++i) {
+      for (std::size_t j = 0; j < i; ++j) {
+        if (*d <= threshold) {
+          stream << fmt::format("{} {} {}\n", i, j, static_cast<int>(*d));
+        }
+        ++d;
+      }
+    }
+#endif
   }
 
   void dump_sequence_indices(const std::string &filename) {

@@ -35,6 +35,10 @@ PYBIND11_MODULE(hammingdist, m) {
            &DataSet<DefaultDistIntType>::dump_lower_triangular,
            "Dump distances matrix in lower triangular format (comma-delimited, "
            "row-major)")
+      .def("dump_sparse", &DataSet<DefaultDistIntType>::dump_sparse,
+           py::arg("filename"), py::arg("threshold") = 255,
+           "Dump distances matrix in sparse format excluding any distances "
+           "above threshold")
       .def("dump_sequence_indices",
            &DataSet<DefaultDistIntType>::dump_sequence_indices,
            "Dump row index in distances matrix for each input sequence")
@@ -47,6 +51,10 @@ PYBIND11_MODULE(hammingdist, m) {
       .def("dump_lower_triangular", &DataSet<uint16_t>::dump_lower_triangular,
            "Dump distances matrix in lower triangular format (comma-delimited, "
            "row-major)")
+      .def("dump_sparse", &DataSet<uint16_t>::dump_sparse, py::arg("filename"),
+           py::arg("threshold") = 65535,
+           "Dump distances matrix in sparse format excluding any distances "
+           "above threshold")
       .def("dump_sequence_indices", &DataSet<uint16_t>::dump_sequence_indices,
            "Dump row index in distances matrix for each input sequence")
       .def("__getitem__", &DataSet<uint16_t>::operator[])

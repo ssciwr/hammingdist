@@ -36,7 +36,13 @@ data = hammingdist.from_fasta("example.fasta", include_x=True)
 
 # The distance data can be accessed point-wise, though looping over all distances might be quite inefficient
 print(data[14,42])
+```
 
+## Output formats
+
+The constructed distances matrix can then be written to disk in several different formats:
+
+```python
 # The data can be written to disk in csv format (default `distance` Ripser format) and retrieved:
 data.dump("backup.csv")
 retrieval = hammingdist.from_csv("backup.csv")
@@ -45,12 +51,13 @@ retrieval = hammingdist.from_csv("backup.csv")
 data.dump_lower_triangular("lt.txt")
 retrieval = hammingdist.from_lower_triangular("lt.txt")
 
+# Or in sparse format (`sparse` Ripser format: space-delimited triplet of `i j d(i,j)`
+# with one line for each distance entry i > j which is not above threshold):
+data.dump_sparse("sparse.txt", threshold=3)
+
 # If the `remove_duplicates` option was used, the sequence indices can also be written.
 # For each input sequence, this prints the corresponding index in the output:
 data.dump_sequence_indices("indices.txt")
-
-# Finally, we can pass the data as a list of strings in Python:
-data = hammingdist.from_stringlist(["ACGTACGT", "ACGTAGGT", "ATTTACGT"])
 ```
 
 ## Duplicates
