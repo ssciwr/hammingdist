@@ -29,10 +29,10 @@ jobs:
           - os: ubuntu-latest
             open-mp: "ON"
             neon: "OFF"
-          - os: macos-latest
+          - os: macos-13
             open-mp: "OFF"
             neon: "OFF"
-          - os: macos-arm64-ssc
+          - os: macos-14
             open-mp: "OFF"
             neon: "ON"
           - os: windows-latest
