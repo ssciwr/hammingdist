@@ -43,7 +43,10 @@ PYBIND11_MODULE(hammingdist, m) {
            &DataSet<DefaultDistIntType>::dump_sequence_indices,
            "Dump row index in distances matrix for each input sequence")
       .def("__getitem__", &DataSet<DefaultDistIntType>::operator[])
-      .def_readonly("_distances", &DataSet<DefaultDistIntType>::result);
+      .def_readonly("_distances", &DataSet<DefaultDistIntType>::result)
+      .def_property_readonly("lt_array", [](DataSet<DefaultDistIntType> &self) {
+        return py::array(self.result.size(), self.result.data());
+      });
 
   py::class_<DataSet<uint16_t>>(m, "DataSetLarge")
       .def("dump", &DataSet<uint16_t>::dump,
@@ -58,7 +61,10 @@ PYBIND11_MODULE(hammingdist, m) {
       .def("dump_sequence_indices", &DataSet<uint16_t>::dump_sequence_indices,
            "Dump row index in distances matrix for each input sequence")
       .def("__getitem__", &DataSet<uint16_t>::operator[])
-      .def_readonly("_distances", &DataSet<uint16_t>::result);
+      .def_readonly("_distances", &DataSet<uint16_t>::result)
+      .def_property_readonly("lt_array", [](DataSet<uint16_t> &self) {
+        return py::array(self.result.size(), self.result.data());
+      });
 
   m.def("from_stringlist", &from_stringlist,
         "Creates a dataset from a list of strings");

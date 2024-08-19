@@ -32,7 +32,7 @@ jobs:
           - os: macos-13
             open-mp: "OFF"
             neon: "OFF"
-          - os: macos-14
+          - os: macos-latest
             open-mp: "OFF"
             neon: "ON"
           - os: windows-latest
