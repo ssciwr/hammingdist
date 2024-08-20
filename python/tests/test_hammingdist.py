@@ -13,6 +13,8 @@ def write_fasta_file(filename, sequences):
 
 
 def check_output_sizes(dat, n_in, n_out, tmp_out_file, fasta_sequence_indices=None):
+    assert dat.lt_array.shape == (n_out * (n_out - 1) // 2,)
+
     dat.dump(tmp_out_file)
     dump = np.loadtxt(tmp_out_file, delimiter=",")
     assert len(dump) == n_out
@@ -97,8 +99,9 @@ def test_from_fasta(from_fasta_func, use_gpu, tmp_path):
 )
 @pytest.mark.parametrize("max_distance", [0, 1, 2, 3, 89, 497, 9999999])
 def test_fasta_reference_distances(chars, include_x, max_distance, tmp_path):
-    # generate 50 sequences, each with 25 characters
-    sequences = ["".join(random.choices(chars, k=25)) for i in range(50)]
+    n_seq = 50
+    n_chars = 25
+    sequences = ["".join(random.choices(chars, k=n_chars)) for i in range(n_seq)]
     fasta_file = str(tmp_path / "fasta.txt")
     write_fasta_file(fasta_file, sequences)
     # calculate distances matrix
@@ -108,6 +111,12 @@ def test_fasta_reference_distances(chars, include_x, max_distance, tmp_path):
         include_x=include_x,
         max_distance=max_distance,
     )
+    # get lower-triangular data as 1-d array
+    lt_array = data.lt_array
+    assert lt_array.shape == (n_seq * (n_seq - 1) // 2,)
+    # reshape to lower-triangular matrix
+    lt_matrix = np.zeros((n_seq, n_seq), dtype=np.uint8)
+    lt_matrix[np.tril_indices(n_seq, -1)] = lt_array
     # use each sequence in turn as the reference sequence & calculate reference distances
     for i, sequence in enumerate(sequences):
         vec = hammingdist.fasta_reference_distances(
@@ -120,6 +129,7 @@ def test_fasta_reference_distances(chars, include_x, max_distance, tmp_path):
             # if x is not included, invalid chars have distance 1 but data[i,i] returns 0 by construction
             if include_x or i != j:
                 assert data[i, j] == min(max_distance, dist)
+                assert lt_matrix[max(i, j), min(i, j)] == min(max_distance, dist)
             # should also agree with output of distance function for these two sequences
             assert dist == hammingdist.distance(
                 sequences[i], sequences[j], include_x=include_x

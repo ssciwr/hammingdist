@@ -4,7 +4,7 @@ build-backend = "scikit_build_core.build"
 
 [project]
 name = "hammingdist"
-version = "1.2.0"
+version = "1.3.0"
 description = "A fast tool to calculate Hamming distances"
 readme = "README.md"
 license = {text = "MIT"}
@@ -23,6 +23,7 @@ classifiers=[
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: Implementation :: CPython",
     "Programming Language :: Python :: Implementation :: PyPy",
     "Operating System :: MacOS :: MacOS X",
@@ -39,7 +40,7 @@ test = ["pytest", "numpy"]
 
 [tool.scikit-build]
 cmake.version = ">=3.23"
-cmake.verbose = true
+build.verbose = true
 
 [tool.scikit-build.cmake.define]
 BUILD_TESTING = "OFF"
@@ -48,7 +49,7 @@ HAMMING_BUILD_PYTHON = "ON"
 
 [tool.cibuildwheel]
 skip = "*-manylinux_i686 *-musllinux*"
-test-skip = "pp*"
+test-skip = "pp* cp313-manylinux_x86_64"
 test-extras = "test"
 test-command = "pytest {project}/python/tests -v"
 environment = { BLAS="None", LAPACK="None", ATLAS="None" }

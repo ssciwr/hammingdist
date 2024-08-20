@@ -58,6 +58,13 @@ data.dump_sparse("sparse.txt", threshold=3)
 # If the `remove_duplicates` option was used, the sequence indices can also be written.
 # For each input sequence, this prints the corresponding index in the output:
 data.dump_sequence_indices("indices.txt")
+
+# The lower-triangular distance elements can also be directly accessed as a 1-d numpy array:
+lt_array = data.lt_array
+# The elements in this array correspond to the 2-d indices (row=1,col=0), (row=2,col=0), (row=2,col=1), ...
+# These indices can be generated using the numpy tril_indices function, e.g. to construct the lower-triangular matrix:
+lt_matrix = np.zeros((n_seq, n_seq))
+lt_matrix[np.tril_indices(n_seq, -1)] = lt_array
 ```
 
 ## Duplicates
