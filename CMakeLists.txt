@@ -1,14 +1,14 @@
-cmake_minimum_required(VERSION 3.23..3.30)
+cmake_minimum_required(VERSION 3.23..4.1)
 
 project(
   hammingdist
-  VERSION 1.3.0
+  VERSION 1.4.0
   LANGUAGES CXX)
 
 include(CTest)
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 
 # compilation options
 set(HAMMING_WITH_OPENMP

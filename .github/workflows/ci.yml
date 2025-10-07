@@ -44,9 +44,9 @@ jobs:
         with:
           submodules: "recursive"
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
-          python-version: "3.12"
+          python-version: "3.14"
           allow-prereleases: true
 
       - name: make build directory
@@ -60,7 +60,7 @@ jobs:
       - name: build
         shell: bash
         working-directory: ${{runner.workspace}}/build
-        run: cmake --build .
+        run: cmake --build . -j4
 
       - name: run tests
         shell: bash
