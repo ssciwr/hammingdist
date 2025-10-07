@@ -15,7 +15,9 @@ endif()
 if(HAMMING_WITH_SSE2)
   target_compile_definitions(hamming PUBLIC HAMMING_WITH_SSE2)
   add_library(distance_sse2 STATIC distance_sse2.cc)
-  target_compile_options(distance_sse2 PRIVATE -msse2)
+  target_compile_options(
+    distance_sse2 PRIVATE $<$<CXX_COMPILER_ID:MSVC>:/arch:SSE2>
+                          $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-msse2>)
   target_include_directories(distance_sse2 PUBLIC ../include)
   target_link_libraries(hamming PRIVATE distance_sse2)
 endif()
@@ -23,7 +25,9 @@ endif()
 if(HAMMING_WITH_AVX2)
   target_compile_definitions(hamming PUBLIC HAMMING_WITH_AVX2)
   add_library(distance_avx2 STATIC distance_avx2.cc)
-  target_compile_options(distance_avx2 PRIVATE -mavx2)
+  target_compile_options(
+    distance_avx2 PRIVATE $<$<CXX_COMPILER_ID:MSVC>:/arch:AVX2>
+                          $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-mavx2>)
   target_include_directories(distance_avx2 PUBLIC ../include)
   target_link_libraries(hamming PRIVATE distance_avx2)
 endif()
@@ -31,7 +35,9 @@ endif()
 if(HAMMING_WITH_AVX512)
   target_compile_definitions(hamming PUBLIC HAMMING_WITH_AVX512)
   add_library(distance_avx512 STATIC distance_avx512.cc)
-  target_compile_options(distance_avx512 PRIVATE -mavx512bw)
+  target_compile_options(
+    distance_avx512 PRIVATE $<$<CXX_COMPILER_ID:MSVC>:/arch:AVX512>
+                            $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-mavx512bw>)
   target_include_directories(distance_avx512 PUBLIC ../include)
   target_link_libraries(hamming PRIVATE distance_avx512)
 endif()
