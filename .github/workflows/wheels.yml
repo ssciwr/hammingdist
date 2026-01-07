@@ -29,7 +29,7 @@ jobs:
       - uses: pypa/cibuildwheel@v3.2
         env:
           CIBW_MANYLINUX_X86_64_IMAGE: sameli/manylinux2014_x86_64_cuda_11.8
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v6
         with:
           name: artifacts-${{ matrix.os }}
           path: ./wheelhouse/*.whl
