@@ -1,6 +1,7 @@
+import random
+
 import hammingdist
 import numpy as np
-import random
 import pytest
 
 gpu_options = [False, True] if hammingdist.cuda_gpu_available() else [False]
@@ -8,8 +9,7 @@ gpu_options = [False, True] if hammingdist.cuda_gpu_available() else [False]
 
 def write_fasta_file(filename, sequences):
     with open(filename, "w") as f:
-        for i, seq in enumerate(sequences):
-            f.write(f">seq{i}\n{seq}\n")
+        f.writelines(f">seq{i}\n{seq}\n" for i, seq in enumerate(sequences))
 
 
 def check_output_sizes(dat, n_in, n_out, tmp_out_file, fasta_sequence_indices=None):
@@ -132,7 +132,7 @@ def test_fasta_reference_distances(chars, include_x, max_distance, tmp_path):
                 assert lt_matrix[max(i, j), min(i, j)] == min(max_distance, dist)
             # should also agree with output of distance function for these two sequences
             assert dist == hammingdist.distance(
-                sequences[i], sequences[j], include_x=include_x
+                sequence, sequences[j], include_x=include_x
             )
 
 
