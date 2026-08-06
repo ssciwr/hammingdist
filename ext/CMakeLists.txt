@@ -2,6 +2,7 @@ set(FMT_INSTALL OFF)
 add_subdirectory(fmt)
 
 if(HAMMING_BUILD_PYTHON)
+  set(PYBIND11_FINDPYTHON ON)
   add_subdirectory(pybind11)
 endif()
 
