@@ -4,10 +4,9 @@ on:
   push:
     branches:
       - main
+    tags:
+      - "*.*.*"
   pull_request:
-  workflow_dispatch:
-  release:
-    types: [published]
 
 concurrency:
   group: wheels-${{ github.ref }}
@@ -37,7 +36,7 @@ jobs:
   upload_pypi:
     needs: [build-wheels]
     runs-on: ubuntu-latest
-    if: github.event_name == 'release' && github.event.action == 'published'
+    if: github.ref_type == 'tag'
     environment: release
     permissions:
       id-token: write
