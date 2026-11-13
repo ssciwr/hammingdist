@@ -1,0 +1,95 @@
+name: GPU tests (simulated H100)
+
+# The hosted runners have no GPU, so ci.yml builds with HAMMING_WITH_CUDA=no
+# and the CUDA code in src/distance_cuda.cu is never run. This builds it with
+# CUDA 13.0 and runs the Catch2 tests (including the [gpu] ones) and the Python
+# tests on a simulated NVIDIA H100 (https://github.com/pantheongpu/pantheonsim).
+# A simulator cannot reproduce hardware-specific behavior or timing, so it
+# complements real-GPU testing and does not replace it.
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "src/**"
+      - "include/**"
+      - "python/**"
+      - "ext/**"
+      - "CMakeLists.txt"
+      - ".github/workflows/gpu-sim.yml"
+
+concurrency:
+  group: gpu-sim-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  gpu-sim:
+    name: CUDA 13.0 on a simulated H100
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          submodules: "recursive"
+          persist-credentials: false
+
+      - name: Set up the simulated GPU and CUDA toolkit
+        uses: pantheongpu/setup-pantheonsim@ab71a07326835be678918901c340d53a83358067 # v0.1.6
+        with:
+          gpu: nvidia/h100
+          cuda-toolkit: "13.0"
+
+      - name: Install Python test dependencies
+        run: |
+          python3 -m venv "$RUNNER_TEMP/venv"
+          "$RUNNER_TEMP/venv/bin/pip" install numpy pytest
+          echo "$RUNNER_TEMP/venv/bin" >> "$GITHUB_PATH"
+
+      # The simulator runs PTX, so compile distance_cuda for 90-virtual instead
+      # of the "all" set in src/CMakeLists.txt (this edits the runner's checkout
+      # only). The simulator also needs the shared CUDA runtime.
+      - name: Configure
+        run: |
+          sed -i 's/CUDA_ARCHITECTURES "all"/CUDA_ARCHITECTURES "90-virtual"/' src/CMakeLists.txt
+          grep -q 'CUDA_ARCHITECTURES "90-virtual"' src/CMakeLists.txt
+          cmake -S . -B build \
+                -DCMAKE_BUILD_TYPE=Release \
+                -DCMAKE_CUDA_COMPILER=/usr/local/cuda-13.0/bin/nvcc \
+                -DCUDAToolkit_ROOT=/usr/local/cuda-13.0 \
+                -DCMAKE_CUDA_RUNTIME_LIBRARY=Shared \
+                -DBUILD_TESTING=ON \
+                -DHAMMING_BUILD_BENCHMARKS=OFF \
+                -DHAMMING_BUILD_PYTHON=ON \
+                -DPython_EXECUTABLE="$(command -v python)" \
+                -DHAMMING_WITH_SSE2=OFF \
+                -DHAMMING_WITH_AVX2=OFF \
+                -DHAMMING_WITH_AVX512=OFF \
+                -DHAMMING_WITH_OPENMP=ON \
+                -DHAMMING_WITH_CUDA=ON
+
+      - name: Build
+        run: cmake --build build -j3
+
+      # Fail if the simulated GPU is not found, since the GPU tests would then
+      # be skipped (Catch2 SKIP, pytest skipif) instead of failing.
+      - name: Check that the GPU is found
+        working-directory: build/python
+        run: vgpu run python -c "import sys, hammingdist; sys.exit(0 if hammingdist.cuda_gpu_available() else 1)"
+
+      - name: Catch2 tests
+        working-directory: build
+        run: |
+          vgpu run ./src/tests 2>&1 | grep -v '^# hammingdist ::' | tee catch2.log
+          test "${PIPESTATUS[0]}" -eq 0
+          ! grep -q skipped catch2.log
+
+      - name: Python tests
+        working-directory: build/python
+        run: |
+          vgpu run python -m pytest -rs ../../python/tests 2>&1 | tee pytest.log
+          test "${PIPESTATUS[0]}" -eq 0
+          ! grep -q skipped pytest.log
